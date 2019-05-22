@@ -1,0 +1,62 @@
+{
+  "name": "xioliftmes",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "test": "jest"
+  },
+  "dependencies": {
+    "@ant-design/react-native": "^3.1.5",
+    "@babel/plugin-external-helpers": "^7.2.0",
+    "@babel/runtime": "^7.4.4",
+    "babel-preset-react-native": "^5.0.2",
+    "react": "16.8.3",
+    "react-dom": "^16.8.6",
+    "react-native": "0.58.0",
+    "react-native-background-job": "^2.2.0",
+    "react-native-camera": "^2.6.0",
+    "react-native-cli": "^2.0.1",
+    "react-native-code-push": "^5.6.0",
+    "react-native-config": "^0.11.7",
+    "react-native-dropdown": "0.0.6",
+    "react-native-easy-toast": "^1.2.0",
+    "react-native-elements": "^1.1.0",
+    "react-native-fs": "^2.13.3",
+    "react-native-image-picker": "^0.27.1",
+    "react-native-modal-dropdown": "^0.6.2",
+    "react-native-nfc-manager": "^1.2.2",
+    "react-native-qrcode-svg": "^5.1.2",
+    "react-native-signature-capture": "^0.4.9",
+    "react-native-sqlite-storage": "^3.3.10",
+    "react-native-storage": "^0.2.4",
+    "react-native-svg": "^9.4.0",
+    "react-native-vector-icons": "^6.4.2",
+    "react-navigation": "^2.18.3",
+    "react-redux": "^5.1.1",
+    "react-timer-mixin": "^0.13.4",
+    "redux": "^4.0.1",
+    "redux-thunk": "^2.3.0",
+    "schedule": "^0.4.0"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.4.4",
+    "@babel/plugin-proposal-decorators": "^7.4.4",
+    "@babel/plugin-transform-runtime": "^7.4.4",
+    "babel-cli": "^6.26.0",
+    "babel-jest": "23.4.2",
+    "babel-plugin-import": "^1.11.0",
+    "jest": "23.4.2",
+    "metro-react-native-babel-preset": "^0.53.1",
+    "react-test-renderer": "16.3.1"
+  },
+  "jest": {
+    "preset": "react-native",
+    "setupFiles": [
+      "<rootDir>\\node_modules\\appcenter\\test\\AppCenterMock.js",
+      "<rootDir>\\node_modules\\appcenter-analytics\\test\\AppCenterAnalyticsMock.js",
+      "<rootDir>\\node_modules\\appcenter-push\\test\\AppCenterPushMock.js",
+      "<rootDir>\\node_modules\\appcenter-crashes\\test\\AppCenterCrashesMock.js"
+    ]
+  }
+}
