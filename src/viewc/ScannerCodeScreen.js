@@ -1,53 +1,48 @@
 import React from 'react';
-import { StyleSheet, Text, View, TouchableOpacity, Slider, Animated, ImageBackground, Dimensions } from 'react-native';
+import { StyleSheet, Text, View, TouchableOpacity, Slider, Animated, ImageBackground, Dimensions, InteractionManager } from 'react-native';
 import { RNCamera } from 'react-native-camera';
 
 
-const landmarkSize = 2;
-
-const flashModeOrder = {
-    off: 'on',
-    on: 'auto',
-    auto: 'torch',
-    torch: 'off',
-};
-
-const wbOrder = {
-    auto: 'sunny',
-    sunny: 'cloudy',
-    cloudy: 'shadow',
-    shadow: 'fluorescent',
-    fluorescent: 'incandescent',
-    incandescent: 'auto',
-};
-const Dwidth = Dimensions.get('window').width;
-const Dheight = Dimensions.get('window').height;
-
-const QC_IMAGE = require('../../assets/images/qc_scan.png');
+const { width, height } = Dimensions.get('window');
 
 export default class CameraScreen extends React.Component {
     state = {
-        flash: 'off',
-        zoom: 0,
         autoFocus: 'on',
         depth: 0,
         type: 'back',
-        whiteBalance: 'auto',
-        ratio: '16:9',
-        ratios: [],
-        photoId: 1,
-        showGallery: false,
-        photos: [],
-        faces: [],
-        anim: new Animated.Value(0),
+
+        codetype: [RNCamera.Constants.BarCodeType.qr, RNCamera.Constants.BarCodeType.code128], // 条码类型
+        animate: new Animated.Value((width - 200) / 2, (height - 340) / 2),
+        show: true,
     };
 
+    componentDidMount() {
+        InteractionManager.runAfterInteractions(() => {
+            this.startAnimation();
+        })
+    }
+    componentWillUnmount() {
+        this.setState({ show: false });
+    }
+
     scanBarcode = function (data) {
-        if (this.camera) {
+        if (this.state.show && this.camera) {
             this.props.navigation.state.params.callback(data.data);
             this.props.navigation.goBack();
         }
     };
+    // 动画开始
+    startAnimation() {
+        if (this.state.show) {
+            this.state.animate.setValue(0);
+            Animated.timing(this.state.animate, {
+                toValue: 1,   // 运动终止位置，比值
+                duration: 2500,  // 动画时长
+                easing: Easing.linear,  // 线性的渐变函数
+                delay: 0.5,// 在一段时间之后开始动画（单位是毫秒），默认为0
+            }).start(() => this.startAnimation())
+        }
+    }
 
     renderCamera() {
         return (
@@ -55,57 +50,32 @@ export default class CameraScreen extends React.Component {
                 ref={ref => {
                     this.camera = ref;
                 }}
-                style={{
-                    flex: 1,
-                }}
-                type={this.state.type}
-                flashMode={this.state.flash}
+                style={styles.camera}
                 autoFocus={this.state.autoFocus}
-                zoom={this.state.zoom}
-                whiteBalance={this.state.whiteBalance}
-                ratio={this.state.ratio}
-                faceDetectionLandmarks={RNCamera.Constants.FaceDetection.Landmarks.none}
-                focusDepth={this.state.depth}
-                permissionDialogTitle={'Permission to use camera'}
-                permissionDialogMessage={'We need your permission to use your camera phone'}
-                barCodeTypes={[RNCamera.Constants.BarCodeType.qr, RNCamera.Constants.BarCodeType.code128]}
+                permissionDialogTitle={'摄像头权限！'}
+                permissionDialogMessage={'需要开通摄像头访问权限。'}
+                barCodeTypes={this.state.codetype}
                 onBarCodeRead={this.scanBarcode.bind(this)}
+                onCameraReady={() => {
+                    console.log('ready')
+                }}
             >
-                <View style={{ flex: 1, flexDirection: 'column' }}>
-                    <View style={{
-                        flex: 1,
-                        width: Dwidth,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                    }} />
-                    <View
-                        style={{ width: Dwidth, flexDirection: 'row' }}>
-                        <View style={{
-                            flex: 1,
-                            backgroundColor: 'rgba(0,0,0,0.5)',
-                        }} />
-                        <ImageBackground
-                            style={styles.rectangle}
-                            source={QC_IMAGE}>
-                            <Animated.View style={[styles.animateStyle, {
-                                transform: [{
-                                    translateY: this.state.anim.interpolate({
-                                        inputRange: [0, 1],
-                                        outputRange: [0, 200]
-                                    })
-                                }]
-                            }]}>
-                            </Animated.View>
-                        </ImageBackground>
-                        <View style={{
-                            flex: 1,
-                            backgroundColor: 'rgba(0,0,0,0.5)',
-                        }} />
+                <View style={styles.box}>
+                    <View style={styles.kuang}>
+                        <Animated.View style={{
+                            alignItems: 'center',
+                            transform: [{
+                                // translateX: x轴移动
+                                // translateY: y轴移动
+                                translateY: this.state.animate.interpolate({
+                                    inputRange: [0, 1],
+                                    outputRange: [0, 200]
+                                })
+                            }]
+                        }}>
+                            <Text style={{ width: 250, height: 1, backgroundColor: '#00ff00' }}></Text>
+                        </Animated.View>
                     </View>
-                    <View style={{
-                        flex: 1,
-                        width: Dwidth,
-                        backgroundColor: 'rgba(0,0,0,0.5)',
-                    }} />
                 </View>
             </RNCamera>
         );
@@ -119,21 +89,21 @@ export default class CameraScreen extends React.Component {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        paddingTop: 10,
-        backgroundColor: '#000',
     },
-    navigation: {
+    camera: {
         flex: 1,
     },
-    row: {
-        flexDirection: 'row',
+    box: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'rgba(0,0,0,0.6)',
     },
-    animateStyle: {
-        height: 2,
-        backgroundColor: '#00FF00'
-    },
-    rectangle: {
-        height: 200,
-        width: 200,
+    kuang: {
+        width: 260,
+        height: 260,
+        borderWidth: 1,
+        borderColor: 'skyblue',
+        backgroundColor: '#rgba(255,255,255,0.1)'
     }
 });

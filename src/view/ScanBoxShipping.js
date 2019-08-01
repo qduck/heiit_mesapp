@@ -99,11 +99,11 @@ class ScanBoxShipping extends React.Component {
             packCode: this.state.boxno,
             serialNum: this.state.serialNum,
         }
-        if (this.state.boxno == '') {
+        if (this.state.boxno.trim() == '') {
             Alert.alert('错误！', '请扫描箱子唛头条码。');
             return;
         }
-        if (this.state.serialNum == '') {
+        if (this.state.serialNum.trim() == '') {
             Alert.alert('错误！', '请选择装车车牌号。');
             return;
         }
@@ -179,11 +179,22 @@ class ScanBoxShipping extends React.Component {
     componentWillUnmount() {
         this.refs.select1.hide();
     }
+    //回到主页
+    gohome() {
+        const { navigate } = this.props.navigation;
+        navigate('Index');
+    }
     render() {
         this.props.navigation.navigate('DrawerClose');
 
         return (
             <ScrollView >
+                <Header
+                    placement="left"
+                    leftComponent={{ icon: 'home', color: '#fff', onPress: this.gohome.bind(this) }}
+                    centerComponent={{ text: '成品发货扫描', style: { color: '#fff', fontWeight: 'bold' } }}
+                    containerStyle={styles.headercontainer}
+                />
                 <WingBlank>
                     <WhiteSpace />
                     <Text containerStyle={{ alignSelf: 'flex-start' }}>发货车辆：</Text>
@@ -252,6 +263,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingTop: 10,
         justifyContent: 'flex-start',
+
+    },
+    headercontainer: {
+        marginTop: 0,
+        paddingTop: 0,
+        height: 50,
 
     },
     textIconInput: {

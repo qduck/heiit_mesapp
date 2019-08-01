@@ -98,11 +98,23 @@ class ScanBoxInStorage extends React.Component {
             navigate('Login');
         }
     }
+
+    //回到主页
+    gohome() {
+        const { navigate } = this.props.navigation;
+        navigate('Index');
+    }
     render() {
         this.props.navigation.navigate('DrawerClose');
 
         return (
             <ScrollView >
+                <Header
+                    placement="left"
+                    leftComponent={{ icon: 'home', color: '#fff', onPress: this.gohome.bind(this) }}
+                    centerComponent={{ text: '成品入库扫描', style: { color: '#fff', fontWeight: 'bold' } }}
+                    containerStyle={styles.headercontainer}
+                />
                 <WingBlank>
                     <WhiteSpace />
                     <View style={styles.textIconInput}>
@@ -148,6 +160,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingTop: 20,
         justifyContent: 'flex-start',
+    },
+    headercontainer: {
+        marginTop: 0,
+        paddingTop: 0,
+        height: 50,
+
     },
     textIconInput: {
         flexDirection: 'row',

@@ -119,18 +119,27 @@ class ScanPoInWarehouse extends React.Component {
 
     }
 
+    //回到主页
+    gohome() {
+        const { navigate } = this.props.navigation;
+        navigate('Index');
+    }
+
+
     render() {
         return (
             <ScrollView>
-                <KeyboardAvoidingView
-                    behavior="padding"
-                    style={{ height: SCREEN_HEIGHT }}
-                >
-                    <WingBlank>
-                        <WhiteSpace />
-                        <WhiteSpace />
-                        <View style={styles.textIconInput}>
-                            {/* <FormInput ref="textInput1"
+                <Header
+                    placement="left"
+                    leftComponent={{ icon: 'home', color: '#fff', onPress: this.gohome.bind(this) }}
+                    centerComponent={{ text: '采购单入库扫描', style: { color: '#fff', fontWeight: 'bold' } }}
+                    containerStyle={styles.headercontainer}
+                />
+                <WingBlank>
+                    <WhiteSpace />
+                    <WhiteSpace />
+                    <View style={styles.textIconInput}>
+                        {/* <FormInput ref="textInput1"
                         type="text" value={this.state.pono}
                         onChangeText={this.checkpono}
                         onSubmitEditing={this.submitForm.bind(this)}
@@ -139,32 +148,32 @@ class ScanPoInWarehouse extends React.Component {
                         width={SCREEN_WIDTH - 70}
                         keyboardType="email-address"
                     /> */}
-                            <Input label="采购订单号：" type="text"
-                                selectTextOnFocus={true}
-                                ref="textInput1"
-                                onSubmitEditing={this.submitForm.bind(this)}
-                                onChangeText={(text) => this.setState({ pono: text })}
-                                autoFocus={this.state.pono_focused}
-                                value={this.state.pono}
-                                errorMessage={this.state.pono_emessage}
-                            />
+                        <Input label="采购订单号：" type="text"
+                            selectTextOnFocus={true}
+                            ref="textInput1"
+                            onSubmitEditing={this.submitForm.bind(this)}
+                            onChangeText={(text) => this.setState({ pono: text })}
+                            autoFocus={this.state.pono_focused}
+                            value={this.state.pono}
+                            errorMessage={this.state.pono_emessage}
+                        />
 
-                        </View>
-                        <WhiteSpace />
-                        <WhiteSpace />
+                    </View>
+                    <WhiteSpace />
+                    <WhiteSpace />
 
-                        <View>
-                            <Button backgroundColor='#6495ed' activeOpacity={1}
-                                onPress={this.submitForm.bind(this)}
-                                loading={this.state.submitLoading}
-                                title='确认并入库' />
-                        </View>
+                    <View>
+                        <Button backgroundColor='#6495ed' activeOpacity={1}
+                            onPress={this.submitForm.bind(this)}
+                            loading={this.state.submitLoading}
+                            title='确认并入库' />
+                    </View>
 
 
 
-                    </WingBlank>
-                    <Toast ref="toast" position="top" positionValue={2} opacity={0.6} />
-                </KeyboardAvoidingView>
+                </WingBlank>
+                <Toast ref="toast" position="top" positionValue={2} opacity={0.6} />
+
             </ScrollView>
         );
     }
@@ -185,6 +194,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingTop: 20,
         justifyContent: 'flex-start',
+    },
+    headercontainer: {
+        marginTop: 0,
+        paddingTop: 0,
+        height: 50,
+
     },
     textIconInput: {
         flexDirection: 'row',

@@ -140,7 +140,7 @@ class Login extends React.Component {
 
                     </WingBlank>
                     <View style={styles.copyright}>
-                        <Text>copyright: XioLift IT V2.6</Text>
+                        <Text>copyright: XioLift IT V1.0.7</Text>
                     </View>
                 </WingBlank>
             </ScrollView>

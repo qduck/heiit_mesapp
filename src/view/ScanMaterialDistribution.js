@@ -1,5 +1,5 @@
 import React from 'react';
-import { Text, View, ScrollView, TouchableOpacity, Alert, StyleSheet, Dimensions, InteractionManager } from 'react-native';
+import { Text, View, ScrollView, TouchableOpacity, Alert, StyleSheet, Dimensions, InteractionManager, NativeModules } from 'react-native';
 import { Input, Button, Header } from 'react-native-elements';
 import { WhiteSpace, WingBlank, Flex } from '@ant-design/react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
@@ -27,7 +27,8 @@ class ScanMaterialDistribution extends React.Component {
             pono_valid: true,
             pono_emessage: '',
             pono_focused: true,
-            submitLoading: false
+            submitLoading: false,
+            focus_controller: null,
         };
         //const navigate = this.props.navigation;
 
@@ -39,7 +40,7 @@ class ScanMaterialDistribution extends React.Component {
     }
 
     //提交扫描结果
-    async submitForm() {
+    submitForm() {
 
         let { status, user, token } = this.props;
 
@@ -52,7 +53,7 @@ class ScanMaterialDistribution extends React.Component {
             Alert.alert('错误！', '请扫描配送单条码。', [{ text: 'OK', onPress: () => this.refs.textInput1.focus() }]);
             return;
         }
-        //this.setState({ submitLoading: true });
+        this.setState({ submitLoading: true });
 
         HTTPPOST('/sm/execPSDSM', data, token)
             .then((res) => {
@@ -64,11 +65,11 @@ class ScanMaterialDistribution extends React.Component {
                     Alert.alert('错误', '配送单[' + this.state.pono + ']，' + res.msg);
                 }
                 this.refs.textInput1.focus();
-                //this.setState({ submitLoading: false });
+                this.setState({ submitLoading: false });
 
             }).catch((error) => {
                 Alert.alert('错误', error);
-                //this.setState({ submitLoading: false });
+                this.setState({ submitLoading: false });
 
             });
         //
@@ -87,10 +88,10 @@ class ScanMaterialDistribution extends React.Component {
     }
 
 
-    async componentDidMount() {
+    componentDidMount() {
 
-        await InteractionManager.runAfterInteractions();
-        this.props.navigation.navigate('DrawerClose');
+        // await InteractionManager.runAfterInteractions();
+        // this.props.navigation.navigate('DrawerClose');
     }
     //在渲染前调用,在客户端也在服务端
     componentWillMount() {
@@ -103,10 +104,37 @@ class ScanMaterialDistribution extends React.Component {
     componentWillUnmount() {
 
     }
+    //回到主页
+    gohome() {
+        const { navigate } = this.props.navigation;
+        navigate('Index');
+    }
 
+    scanBarcodeCamera() {
+        const { navigate } = this.props.navigation;
+        navigate('ScannerCode',
+            {
+                callback: (backData) => {
+                    this.setState({
+                        pono: backData
+                    });
+                }
+            })
+    }
+    onfocus(e) {
+        NativeModules.KeyboardFunctionalities.hideKeyboard();
+        console.log(e);
+    }
     render() {
         return (
             <ScrollView >
+                <Header
+                    placement="left"
+                    leftComponent={{ icon: 'home', color: '#fff', onPress: this.gohome.bind(this) }}
+                    centerComponent={{ text: '物料配送签收', style: { color: '#fff', fontWeight: 'bold' } }}
+                    containerStyle={styles.headercontainer}
+                    rightComponent={{ icon: 'crop-free', color: '#fff', onPress: this.scanBarcodeCamera.bind(this) }}
+                />
                 <WingBlank>
                     <WhiteSpace />
                     <View style={styles.textIconInput}>
@@ -155,6 +183,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingTop: 20,
         justifyContent: 'flex-start',
+
+    },
+    headercontainer: {
+        marginTop: 0,
+        paddingTop: 0,
+        height: 50,
 
     },
     textIconInput: {

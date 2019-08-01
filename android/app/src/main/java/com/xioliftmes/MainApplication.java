@@ -3,6 +3,7 @@ package com.xioliftmes;
 import android.app.Application;
 
 import com.facebook.react.ReactApplication;
+import com.reactnative.ivpusic.imagepicker.PickerPackage;
 import com.lugg.ReactNativeConfig.ReactNativeConfigPackage;
 import org.reactnative.camera.RNCameraPackage;
 import com.rnfs.RNFSPackage;
@@ -39,12 +40,12 @@ public class MainApplication extends Application implements ReactApplication {
 
     @Override
     protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(new SQLitePluginPackage(), new MainReactPackage(),
+      return Arrays.<ReactPackage>asList(new SQLitePluginPackage(), new MainReactPackage(), new PickerPackage(),
           new ReactNativeConfigPackage(), new RNCameraPackage(), new RNFSPackage(),
-          new CodePush(BuildConfig.Code_Push_deploymentKey, getApplicationContext(),
-              BuildConfig.DEBUG, BuildConfig.Code_Push_Server),
+          new CodePush(BuildConfig.Code_Push_deploymentKey, getApplicationContext(), BuildConfig.DEBUG,
+              BuildConfig.Code_Push_Server),
           new SvgPackage(), new BackgroundJobPackage(), new RSSignatureCapturePackage(), new ImagePickerPackage(),
-          new NfcManagerPackage(), new VectorIconsPackage());
+          new NfcManagerPackage(), new VectorIconsPackage(), new BaiduTtsReactNativePackage(), new KeyboardPackage());
     }
 
     @Override

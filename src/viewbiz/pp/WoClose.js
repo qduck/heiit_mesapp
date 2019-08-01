@@ -1,6 +1,6 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, Alert, StyleSheet, Dimensions, ToastAndroid, FlatList, ScrollView } from 'react-native';
-import { Input, Button, ListItem } from 'react-native-elements';
+import { Text, View, TouchableOpacity, Alert, StyleSheet, Dimensions, ToastAndroid, FlatList, ScrollView, NativeModules } from 'react-native';
+import { Input, Button, ListItem, Header } from 'react-native-elements';
 import { WhiteSpace, WingBlank, Flex } from '@ant-design/react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { HTTPPOST, HTTPPOST_Multipart } from '../../api/HttpRequest';
@@ -8,13 +8,9 @@ import { HTTPPOST, HTTPPOST_Multipart } from '../../api/HttpRequest';
 import { connect } from 'react-redux';
 import StringUtil from '../../api/StringUtil';
 
+import TimerScanDataSync_WoScan from '../../viewc/TimerScanDataSync_WoScan';
 import ImagePicker from 'react-native-image-picker';
-// import ErrorUtils from "ErrorUtils";
 
-// ErrorUtils.setGlobalHandler((e) => {
-//     //发生异常的处理方法,当然如果是打包好的话可能你找都找不到是哪段代码出问题了
-//     Alert.alert("异常", JSON.stringify(e))
-// });
 import SQLite from '../../api/SQLite';
 var sqLite = new SQLite();
 var db;
@@ -27,13 +23,16 @@ const photoOptions = {
     cancelButtonTitle: '取消',
     takePhotoButtonTitle: '拍照',
     chooseFromLibraryButtonTitle: '选择相册',
-    quality: 0.75,
+    quality: 0.5,
+    maxWidth: 1920,
+    maxHeight: 1080,
     allowsEditing: false,
     noData: true,
     storageOptions: {
         skipBackup: true,
         path: 'boxing/' + StringUtil.getNowDate(),
-        cameraRoll: false
+        cameraRoll: false,
+        waitUntilSaved: true,
     },
 };
 
@@ -44,12 +43,16 @@ class WoClose extends React.Component {
 
         this.state = {
             worksiteno: '',
+            worksitename: '',
             worksite_focused: true,
 
             boxno: '',
             boxno_valid: true,
             boxno_emessage: '',
             boxno_focused: false,
+
+            wodata: [],  ///操作的SAP工单数据
+            wono: [],    ///SAP的工单号数据
 
             partno: '',
             partno_valid: true,
@@ -69,7 +72,7 @@ class WoClose extends React.Component {
             submitLoading_BoxClose: false,
             submitLoading_uploadPhoto: false,
 
-            partcheckLoading: false, //刷新按钮的loding状态
+            partlistLoading: false, //刷新按钮的loding状态
 
             //syncCount: 0, //未同步数量
             theboxScanCount: 0,//当前箱子扫描数量
@@ -84,6 +87,30 @@ class WoClose extends React.Component {
 
 
     }
+    //1. 在渲染前调用,在客户端也在服务端
+    async componentWillMount() {
+        let { status } = this.props;
+        const { navigate } = this.props.navigation;
+        if (status != '1') {
+            navigate('Login');
+        }
+        //开启数据库
+        if (!db) {
+            db = sqLite.open();
+        }
+
+        await sqLite.createTable_ForWoComplete();
+    }
+
+    //2. 在页面组件，控件渲染后触发
+    componentDidMount() {
+
+
+    }
+    componentWillUnmount() {
+
+    }
+
     checkworksite(val) {
         this.setState({ worksiteno: val });
     }
@@ -169,26 +196,7 @@ class WoClose extends React.Component {
         }
     }
 
-    //在渲染前调用,在客户端也在服务端
-    componentWillMount() {
-        let { status } = this.props;
-        const { navigate } = this.props.navigation;
-        if (status != '1') {
-            navigate('Login');
-        }
-    }
 
-    //在页面组件，控件渲染后触发
-    componentDidMount() {
-
-        //开启数据库
-        if (!db) {
-            db = sqLite.open();
-        }
-        //建表
-        sqLite.createTable_ScanPartInBox();
-        //
-    }
 
     //往数据库新增扫描记录
     async scanDataAdd() {
@@ -196,13 +204,16 @@ class WoClose extends React.Component {
         //=========
         var scanDatas = [];
         let scandata = {};
+
+
         scandata.code = user.code;
-        scandata.boxno = this.state.boxno;
+        //scandata.boxno = this.state.boxno;
         scandata.partno = this.state.partno;
 
         let scanpartinfo = await this.getPartInfoInList();
         scandata.ztype = scanpartinfo.ztype;
         scandata.id = scanpartinfo.id;
+        scandata.wono = scanpartinfo.wono;
         if (scanpartinfo.ztype.trim() == 'C+') {
             scandata.number = 1;
         } else {
@@ -211,7 +222,7 @@ class WoClose extends React.Component {
 
         scanDatas.push(scandata)
         //将扫描数据存入数据库
-        await sqLite.insertData_ScanPartInBox(scanDatas);
+        await sqLite.insertData_ScanPartInWo(scanDatas);
 
         ToastAndroid.show(
             '关键部件【' + this.state.partno + '】插入成功，请继续！',
@@ -219,8 +230,9 @@ class WoClose extends React.Component {
         );
 
         //重新加载待扫描部件清单
-        console.info("扫描关键部件完成，重新加载部件列表！");
-        await this.loadPartList(StringUtil.cutStringTail(this.state.boxno, 4));
+        //console.info("扫描关键部件完成，重新加载部件列表！");
+
+        await this.loadPartList(this.state.wono);
 
         this.setState({ partno: '' });
         this.refs.textInput2.focus();
@@ -233,9 +245,23 @@ class WoClose extends React.Component {
 
     //刷新未同步的扫描数据记录
     reflashTheboxScanData() {
+        let wonolist = this.state.wono;
+        let thewono = '';
+        if (wonolist.length == 0) {
+            //没有工单
+            return;
+        }
+        wonolist.forEach(woitem => {
+            if (thewono == '') {
+                thewono = "'" + woitem + "'"
+            } else {
+                thewono = thewono + ",'" + woitem + "'"
+            }
+        });
         //查询
+
         db.transaction((tx) => {
-            tx.executeSql("select count(*) as ret from ScanData_PartInBox where boxno='" + this.state.boxno + "'", [], (tx, results) => {
+            tx.executeSql("select count(*) as ret from ScanData_PartInWo where wono in(" + thewono + ")", [], (tx, results) => {
                 var len = results.rows.length;
                 if (len >= 1) {
                     let docount = results.rows.item(0).ret;
@@ -253,9 +279,8 @@ class WoClose extends React.Component {
     submitForm_partin() {
         let { status, user, token } = this.props;
 
-        if (this.state.boxno == '') {
-            Alert.alert('错误！', '请扫描箱子唛头条码。', [{ text: 'OK', onPress: () => this.refs.textInput1.focus() }]);
-
+        if (this.state.boxno == '' || this.state.wodata.length == 0) {
+            Alert.alert('错误！', '请扫描唛头条码或工单条码。', [{ text: 'OK', onPress: () => this.refs.textInput1.focus() }]);
             return;
         }
 
@@ -273,8 +298,8 @@ class WoClose extends React.Component {
 
         //判断部件条码是否已经被采集过
         db.transaction((tx) => {
-            tx.executeSql("select count(*) as ret from ScanData_PartInBox where partno='" + this.state.partno + "'", [], (tx, results) => {
-                var len = results.rows.length;
+            tx.executeSql("select count(*) as ret from ScanData_PartInWo where partno='" + this.state.partno + "' and synced<>-1", [], (tx, results) => {
+                let len = results.rows.length;
                 if (len >= 1) {
                     let scount = results.rows.item(0).ret;
                     if (scount >= 1) {
@@ -292,122 +317,98 @@ class WoClose extends React.Component {
     }
 
 
-    //提交，未扫描关键部件检查
-    async submitForm_partcheck() {
+    //获取工单对应的关键部件清单
+    getwopartlist() {
         let { status, user, token } = this.props;
+        let orderno = this.state.boxno;
+        if (this.state.boxno.indexOf('  ') >= 0) {
+            //扫描的信息为唛头条码
+            orderno = this.state.boxno.substring(0, this.state.boxno.indexOf('  '));
+        } else {
+            orderno = this.state.boxno
+        }
         let data = {
-            packBarCode: this.state.boxno
+            gwdm: this.state.worksiteno,
+            hth: orderno
         }
 
-        if (this.state.boxno == '') {
-            Alert.alert('错误！', '请扫描箱子唛头条码。', [{ text: 'OK', onPress: () => this.refs.textInput1.focus() }]);
+        if (!data.gwdm || !data.hth || data.gwdm == '' || data.hth == '') {
+            Alert.alert('错误！', '请扫描合同条码或箱子唛头条码。', [{ text: 'OK', onPress: () => this.refs.textInput1.focus() }]);
             return;
         }
 
-        //从服务器获取部件数据
-        this.setState({ partcheckLoading: true });
-        await HTTPPOST('/sm/partQuery', data, token)
+        //从服务器获取工单号
+        this.setState({ partlistLoading: true });
+        HTTPPOST('/sm/getGDXX', data, token)
             .then(async (res) => {
                 if (res.code >= 1) {
-                    //
-                    let boxno = this.state.boxno;
-                    let boxno_nopartial = StringUtil.cutStringTail(this.state.boxno, 4);
-                    console.info("获取到服务器上的PackList数据，更新本地数据开始！");
-                    await sqLite.insertData_Todo_PackList(this.state.boxno, StringUtil.cutStringTail(this.state.boxno, 4), res.message);
+                    //获取工单成功
+                    if (res.list.length >= 1) {
 
-                    this.state.photoNeedCount = res.message;
+                        this.setState({ wodata: res.list });
 
-                    let plist = [];
+                        //获取工单对应的关键部件清单数据
+                        let wono = [];
+                        res.list.forEach(woitem => {
+                            if (wono.indexOf(woitem.aufnr) == -1) {
+                                wono.push(woitem.aufnr);
+                            }
+                        });
+                        this.setState({ wono: wono });
+                        this.setState({ partlistLoading: false });
+                        this.getPartList(wono);
+                        console.log('获取工单数据成功！');
 
-                    if (res.list && res.list.length >= 1) {
 
-                        for (let index = 0; index < res.list.length; index++) {
-                            let item = res.list[index];
-                            plist.push({
-                                boxno: boxno,
-                                boxno_nopartial: boxno_nopartial,
-                                partno: item.ids,
-                                partname: item.name,
-                                number: item.quantity,
-                                innumber: item.scannedQuantity,
-                                ztype: item.zt
+                        let reqdata2 = {
+                            aufnr: this.state.wono[0]
+                        };
+                        //看看数据库中是否已经同步完成，如果完成，使用此数字，如果没用，使用数据库中数据。
+                        HTTPPOST('/sm/GetGDPhotoUploadNumber', reqdata2, token)
+                            .then((res) => {
+                                if (res.code >= 1) {
+                                    if (res.data) {
+                                        let dd = res.data;
+                                        console.info("从服务器返回已上传的照片数量!" + dd);
+                                        this.setState({ photoUploadCount: dd });
+                                    }
+                                } else {
+                                    console.log(res.msg);
+                                }
+                            }).catch((error) => {
+                                Alert.alert('获取服务端照片数量失败！', JSON.stringify(error));
+                                //console.log(error);
                             });
-                        }
-                        console.info("获取到服务器上的PartList数据，更新本地数据开始！");
+                        this.getPhotoNumSyncing(this.state.wono);
+
                     } else {
-                        this.setState({ partlist: plist });
-                        if (res.message) {
-                            this.state.photoNeedCount = res.message;
-                        }
-                        Alert.alert('提醒', '关键部件已经装全！请继续下一步操作。');
-                        this.setState({ partcheckLoading: false });
-                        return
-                    }
-                    await sqLite.insertData_Todo_PartList(plist);
-
-                    console.info("开始加载页面部件清单数据！");
-                    this.loadPartList(boxno_nopartial);
-
-                    this.refs.textInput2.focus();
-                    ToastAndroid.show(
-                        '获取未扫描关键部件清单成功，继续！',
-                        ToastAndroid.LONG
-                    );
-                } else if (res.code == -17) {
-
-                    let plist = [];
-                    this.setState({ partlist: plist });
-                    if (res.message) {
-                        this.state.photoNeedCount = res.message;
-                    }
-                    Alert.alert('提醒', '关键部件已经装全！请继续下一步操作。');
-                } else {
-                    Alert.alert('查询部件错误！', res.code + ':' + res.msg);
-                }
-                this.setState({ partcheckLoading: false });
-            }).catch((error) => {
-                Alert.alert('查询部件异常', JSON.stringify(error));
-                this.setState({ partcheckLoading: false });
-            });
-
-        //获取唛头已拍照数量
-
-        //看看数据库中是否已经同步完成，如果完成，使用此数字，如果没用，使用数据库中数据。
-        HTTPPOST('/sm/getPhotoNum', data, token)
-            .then((res) => {
-                if (res.code >= 1) {
-                    if (res.data) {
-                        let dd = res.data;
-                        console.info("从服务器返回照片数量!" + dd);
-                        this.setState({ photoUploadCount: dd });
+                        Alert.alert('查询工单数据错误！', res.code + ': 没有返回工单数据，' + res.msg);
+                        this.setState({ partlistLoading: false });
                     }
                 } else {
-                    console.log(res.msg);
+                    Alert.alert('查询工单数据错误！', res.code + ':' + res.msg);
+                    this.setState({ partlistLoading: false });
                 }
+
             }).catch((error) => {
-                Alert.alert('获取服务端照片数量失败！', JSON.stringify(error));
-                //console.log(error);
+                Alert.alert('查询工单数据异常', JSON.stringify(error));
+                this.setState({ partlistLoading: false });
             });
-        this.getPhotoNumSyncing(this.state.boxno);
-        // let checkPhotoIsCompleted = await sqLite.checkPhotoIsCompleted(this.state.boxno);
-        // console.info("是否已经传完照片？" + checkPhotoIsCompleted);
-        // if (checkPhotoIsCompleted) {
-        //     console.info("开始从服务器获取照片数量！");
 
-        // } else {
-
-        //     let dd = await sqLite.getPhotoNumByBox(this.state.boxno);
-        //     console.info("未完成照片上传！" + dd);
-        //     this.setState({ photoUploadCount: dd });
-        // }
-        //部件已扫描数量
-        this.reflashTheboxScanData();
     }
 
     //获取本地未上传照片数量
-    getPhotoNumSyncing(boxno) {
+    getPhotoNumSyncing(wonolist) {
+        let thewono = '';
+        wonolist.forEach(woitem => {
+            if (thewono == '') {
+                thewono = "'" + woitem + "'"
+            } else {
+                thewono = thewono + ",'" + woitem + "'"
+            }
+        });
         db.transaction((tx) => {
-            tx.executeSql("select count(*) as ret from ScanData_PhotoTake where boxno='" + boxno + "' and synced=0", [], (tx, results) => {
+            tx.executeSql("select count(*) as ret from ScanData_PhotoInWo where wono in (" + thewono + ") and synced=0", [], (tx, results) => {
                 var len = results.rows.length;
                 if (len >= 1) {
                     let scount = results.rows.item(0).ret;
@@ -419,20 +420,76 @@ class WoClose extends React.Component {
         });
     }
 
+    //加载待扫描部件清单
+    async getPartList(wonolist) {
+        let { status, user, token } = this.props;
+        let data = {
+            aufnrlist: wonolist
+        };
+        this.setState({ partlist: [] });
+        this.setState({ partlistLoading: true });
+        await HTTPPOST('/sm/getGJBJInfo', data, token)
+            .then(async (res) => {
+                if (res.code >= 1) {
+                    //获取工单成功
+                    if (res.list.length >= 1) {
+                        //this.setState({ partlist: res.list });
+                        let plist = [];
+                        for (let index = 0; index < res.list.length; index++) {
+                            let item = res.list[index];
+                            plist.push({
+                                wono: item.aufnr,
+                                partno: item.matnr_S,
+                                partname: item.maktx_S,
+                                number: item.bdmng,
+                                innumber: item.smCount,
+                                ztype: item.typeName
+                            });
+                        }
+                        await sqLite.insertData_Todo_PartListForWo(wonolist, plist);
+                        this.loadPartList(wonolist);
+                    } else {
 
+                        this.setState({ partlist: [] });
+                        ToastAndroid.show(
+                            '查询工单无未扫描的关键部件，请继续！',
+                            ToastAndroid.LONG
+                        );
+                    }
+                } else {
+                    Alert.alert('查询工单关键部件数据错误！', res.code + ':' + res.msg);
+                }
+                this.setState({ partlistLoading: false });
+            }).catch((error) => {
+                Alert.alert('查询工单关键部件数据异常', JSON.stringify(error));
+                this.setState({ partlistLoading: false });
+            });
+    }
 
     //加载待扫描部件清单
-    async loadPartList(boxno_nopartial) {
+    async loadPartList(wonolist) {
+
+
+        let thewono = '';
+        wonolist.forEach(woitem => {
+            if (thewono == '') {
+                thewono = "'" + woitem + "'"
+            } else {
+                thewono = thewono + ",'" + woitem + "'"
+            }
+        });
         this.setState({ partlist: [] });
 
+
         await db.transaction((tx) => {
-            tx.executeSql("select * from Todo_PartList where boxno_nopartial='" + boxno_nopartial + "' and scannedQuantity<quantity", [], (tx, results) => {
+            tx.executeSql("select * from Todo_PartListForWo where wono in(" + thewono + ") and scannedQuantity<quantity", [], (tx, results) => {
                 var len = results.rows.length;
                 if (len >= 1) {
                     let plist = [];
                     for (let i = 0; i < len; i++) {
                         let u = results.rows.item(i);
                         plist.push({
+                            wono: u.wono,
                             partno: u.partno,
                             partname: u.partname,
                             number: u.quantity,
@@ -441,8 +498,17 @@ class WoClose extends React.Component {
                             id: u.id
                         });
                     }
-                    console.info(boxno_nopartial + 'PartList数据显示完成！');
                     this.setState({ partlist: plist });
+                    ToastAndroid.show(
+                        '查询工单未扫描的关键部件成功，请继续！',
+                        ToastAndroid.LONG
+                    );
+                    this.refs.textInput2.focus();
+                } else {
+                    ToastAndroid.show(
+                        '查询工单无未扫描的关键部件，请继续！',
+                        ToastAndroid.LONG
+                    );
                 }
             }, (err) => {
                 console.log(err);
@@ -453,38 +519,45 @@ class WoClose extends React.Component {
     }
 
     //箱子完工扫描提交
-    submitForm_boxclose() {
+    submitForm_woclose() {
         let { status, user, token } = this.props;
+        let wowgifo = "";
+        this.state.wodata.forEach(woelement => {
+            wowgifo = wowgifo + woelement.id08 + ":" + woelement.gamng + ":" + "0;"
+        });
+
         let data = {
             code: user.code,
-            packBarCode: this.state.boxno
+            wginfo: wowgifo
         }
-
-        if (this.state.boxno == '') {
-            Alert.alert('错误！', '请扫描箱子唛头条码。');
+        //工单完工信息格式，案例：“工单号:完工数量:报废数量;工单号2:完工数2:报废数2”
+        if (this.state.wodata.length == 0) {
+            Alert.alert('错误！', '请扫描箱子唛头条码或工单条码。');
             return;
         }
 
         if (this.state.photoUploadCount + this.state.photoSyncCount < this.state.photoNeedCount) {
-            Alert.alert('错误！', '箱子照片还没拍完。应拍：' + this.state.photoNeedCount + '，已拍：' + (this.state.photoUploadCount + this.state.photoSyncCount).toString());
+            Alert.alert('错误！', '工单完工照片还没拍完。应拍：' + this.state.photoNeedCount + '，已拍：' + (this.state.photoUploadCount + this.state.photoSyncCount).toString());
             return;
         }
 
         if (this.state.partlist.length > 0) {
-            Alert.alert('错误！', '箱子部件还没扫描完成，不能完工。');
+            Alert.alert('错误！', '工单关键部件还没扫描完成，不能完工。');
             return;
         }
 
         this.setState({ submitLoading_BoxClose: true });
-        HTTPPOST('/sm/ExecWGSM', data, token)
+        HTTPPOST('/sm/GDWG', data, token)
             .then((res) => {
-                if (res.code >= 1 && res.code != 3) {
-                    ToastAndroid.show(
-                        '箱子【' + this.state.boxno + '】完工扫描成功，【' + res.data.extraMsg + '】！',
-                        ToastAndroid.LONG
-                    );
-                    let plist = [];
-                    this.setState({ partlist: plist });
+                if (res.code >= 1) {
+                    // ToastAndroid.show(
+                    //     '工单【' + this.state.boxno + '】完工扫描成功！' + res.msg,
+                    //     ToastAndroid.LONG
+                    // );
+                    Alert.alert('工单完工扫描成功！', '工单【' + this.state.boxno + '】完工扫描成功！' + res.msg);
+                    this.setState({ partlist: [] });
+                    this.setState({ wodata: [] });
+                    this.setState({ wono: [] });
                     this.setState({ boxno: '' });
                     this.setState({ partno: '' });
                     this.setState({ theboxScanCount: 0 });
@@ -493,23 +566,40 @@ class WoClose extends React.Component {
                     this.setState({ photoNeedCount: 0 });
                     this.refs.textInput1.focus();
 
-                } else if (res.code == 3) {
-                    ToastAndroid.show(
-                        res.data.extraMsg,
-                        ToastAndroid.LONG
-                    );
                 } else {
-                    Alert.alert('装箱完工扫描错误！', res.code + ': ' + res.msg);
+                    Alert.alert('工单完工扫描错误！', res.code + ': ' + res.msg);
                 }
                 this.setState({ submitLoading_BoxClose: false });
             }).catch((error) => {
-                Alert.alert('装箱完工扫描异常！', JSON.stringify(error));
+                Alert.alert('工单完工扫描异常！', JSON.stringify(error));
                 this.setState({ submitLoading_BoxClose: false });
             });
     }
 
     //检查工作站点
     submitForm_worksitecheck() {
+        let { status, user, token } = this.props;
+        // let data = {
+        //     ZDCode: 
+        // }
+        HTTPPOST('/sm/getLineBodyByZDCode', this.state.worksiteno, token)
+            .then((res) => {
+                if (res.code >= 1) {
+                    let sitedata = res.list[0];
+                    this.setState({ worksitename: '(' + sitedata.zdname + ')' })
+                    this.setState({ photoNeedCount: sitedata.minPhotos })
+                    ToastAndroid.show(
+                        '站点信息获取成功！',
+                        ToastAndroid.LONG
+                    );
+                    // NativeModules.BaiduTts.speak('站点信息获取成功');
+                    this.refs.textInput1.focus();
+                } else {
+                    Alert.alert('站点信息获取错误！', res.code + ': ' + res.msg);
+                }
+            }).catch((error) => {
+                Alert.alert('站点信息获取异常！', JSON.stringify(error));
+            });
 
     }
 
@@ -518,13 +608,14 @@ class WoClose extends React.Component {
         const { navigate } = this.props.navigation;
         let { status, user, token } = this.props;
 
-        if (this.state.boxno == "") {
-            Alert.alert('错误！', '请扫描箱子唛头条码。');
+        if (this.state.wono.length == 0) {
+            Alert.alert('无对应工单错误！', '请扫描箱子唛头条码或工单条码。');
+            this.refs.textInput1.focus();
             return;
         }
 
-        ImagePicker.showImagePicker(photoOptions, (response) => {
-            console.log('Response = ', response);
+        ImagePicker.launchCamera(photoOptions, (response) => {
+            //console.log('Response = ', response);
 
             if (response.didCancel) {
                 console.log('User cancelled image picker');
@@ -546,12 +637,12 @@ class WoClose extends React.Component {
                 });
 
                 let photodata = {
-                    boxno: this.state.boxno,
+                    wono: this.state.wono[0],
                     photouri: this.state.avatarSource.uri,
                     usercode: user.code
                 };
                 //登记拍照数据
-                sqLite.insertData_ScanPhotoTake(photodata);
+                sqLite.insertData_ScanPhotoTakeForWo(photodata);
                 let updatephotoCount = this.state.photoSyncCount + 1;
                 this.setState({
                     photoSyncCount: updatephotoCount
@@ -559,47 +650,49 @@ class WoClose extends React.Component {
             }
         });
     }
-
+    //回到主页
+    gohome() {
+        const { navigate } = this.props.navigation;
+        navigate('Index');
+    }
     render() {
         this.props.navigation.navigate('DrawerClose');
 
         return (
-
-            <WingBlank>
-                <WhiteSpace />
-                <Flex >
-                    <Flex.Item>
-                        <Input ref="textInput0"
-                            selectTextOnFocus={true}
-                            type="text" value={this.state.worksiteno}
-                            onChangeText={this.checkworksite}
-                            onSubmitEditing={this.submitForm_worksitecheck.bind(this)}
-                            autoFocus={this.state.worksite_focused}
-                            label="工作站点："
-                        />
-                    </Flex.Item>
-                    <Flex.Item>
-                        <Input ref="textInput02"
-                            selectTextOnFocus={true}
-                            type="text" value={this.state.worksiteno}
-                            onChangeText={this.checkworksite}
-                            onSubmitEditing={this.submitForm_worksitecheck.bind(this)}
-                            label="合同号："
-                        />
-                    </Flex.Item>
-                </Flex>
-                <WhiteSpace />
-                <Input ref="textInput1"
-                    selectTextOnFocus={true}
-                    type="text" value={this.state.boxno}
-                    onChangeText={this.checkboxno}
-                    onSubmitEditing={this.submitForm_partcheck.bind(this)}
-                    autoFocus={this.state.boxno_focused}
-                    style={styles.inputS}
-                    width={SCREEN_WIDTH - 70}
-                    label="工单："
+            <ScrollView>
+                <Header
+                    placement="left"
+                    leftComponent={{ icon: 'home', color: '#fff', onPress: this.gohome.bind(this) }}
+                    centerComponent={{ text: '工单完工扫描', style: { color: '#fff', fontWeight: 'bold' } }}
+                    containerStyle={styles.headercontainer}
                 />
-                {/* <Icon
+                <WingBlank>
+
+                    <WhiteSpace />
+                    <Flex >
+                        <Flex.Item>
+                            <Input ref="textInput0"
+                                selectTextOnFocus={true}
+                                type="text" value={this.state.worksiteno}
+                                onChangeText={this.checkworksite}
+                                onSubmitEditing={this.submitForm_worksitecheck.bind(this)}
+                                autoFocus={this.state.worksite_focused}
+                                label={"工作站点：" + this.state.worksitename}
+                                labelStyle={styles.myLabelStyle}
+                            />
+                        </Flex.Item>
+                    </Flex>
+                    <WhiteSpace />
+                    <Input ref="textInput1"
+                        selectTextOnFocus={true}
+                        type="text" value={this.state.boxno}
+                        onChangeText={this.checkboxno}
+                        onSubmitEditing={this.getwopartlist.bind(this)}
+                        autoFocus={this.state.boxno_focused}
+                        style={styles.inputS}
+                        label="合同条码或唛头码："
+                    />
+                    {/* <Icon
                                     reverse
                                     name='md-qr-scanner'
                                     type='Ionicons'
@@ -611,18 +704,18 @@ class WoClose extends React.Component {
 
 
 
-                <WhiteSpace />
-                <Input ref="textInput2"
-                    selectTextOnFocus={true}
-                    type="text" value={this.state.partno}
-                    onChangeText={this.checkpartno}
-                    onSubmitEditing={this.submitForm_partin.bind(this)}
-                    autoFocus={this.state.partno_focused}
-                    style={styles.inputS}
-                    width={SCREEN_WIDTH - 70}
-                    label="关键部件条码："
-                />
-                {/* <Icon
+                    <WhiteSpace />
+                    <Input ref="textInput2"
+                        selectTextOnFocus={true}
+                        type="text" value={this.state.partno}
+                        onChangeText={this.checkpartno}
+                        onSubmitEditing={this.submitForm_partin.bind(this)}
+                        autoFocus={this.state.partno_focused}
+                        style={styles.inputS}
+
+                        label="关键部件条码："
+                    />
+                    {/* <Icon
                                     reverse
                                     name='md-qr-scanner'
                                     type='Ionicons'
@@ -632,56 +725,56 @@ class WoClose extends React.Component {
                                     onPress={this.showCamera2.bind(this)}
                                 /> */}
 
-                <Flex style={{ padding: 10 }}>
-                    <Text style={{ fontWeight: 'bold' }}>待装箱关键部件：</Text>
-                    <Button buttonStyle={styles.searchbtn}
-                        backgroundColor='#AAA' activeOpacity={1}
-                        onPress={this.submitForm_partcheck.bind(this)}
-                        title='刷新'
-                        loading={this.state.partcheckLoading}
-                    />
+                    <Flex style={{ padding: 10 }}>
+                        <Text style={{ fontWeight: 'bold' }}>待装箱关键部件：</Text>
+                        <Button buttonStyle={styles.searchbtn}
+                            backgroundColor='#AAA' activeOpacity={1}
+                            onPress={this.getwopartlist.bind(this)}
+                            title='刷新'
+                            loading={this.state.partlistLoading}
+                        />
+
+                        <TimerScanDataSync_WoScan token={this.props.token} />
+
+                    </Flex>
+
+                    <ScrollView style={styles.partlistclass}>
+
+                        {
+                            this.state.partlist.map((l) => (
+                                <ListItem
+
+                                    key={l.partno}
+                                    title={l.partno + ' ' + l.partname}
+                                    subtitle={'数量：' + l.number + '，已扫描数量：' + l.innumber + ',类型：' + l.ztype}
+
+                                    containerStyle={{ padding: 5, margin: 0, marginBottom: 10 }}
+                                />
+                            ))
+                        }
+
+                    </ScrollView>
 
 
 
-                </Flex>
+                    <Flex justify="between" >
+                        <Button backgroundColor='#6495ed' activeOpacity={1}
+                            onPress={this.submitForm_partin.bind(this)}
+                            loading={this.state.submitLoading_PartIn}
+                            title={'部件确认(' + this.state.theboxScanCount + ')'} />
 
-                <ScrollView style={styles.partlistclass}>
+                        <Button backgroundColor='#6495ed' activeOpacity={1}
+                            onPress={this.takePhoto.bind(this)}
+                            loading={this.state.submitLoading_uploadPhoto}
+                            title={'拍照(' + (this.state.photoUploadCount + this.state.photoSyncCount).toString() + '/' + this.state.photoNeedCount + ')'} />
 
-                    {
-                        this.state.partlist.map((l) => (
-                            <ListItem
-
-                                key={l.partno}
-                                title={l.partno + ' ' + l.partname}
-                                subtitle={'数量：' + l.number + '，已装箱数量：' + l.innumber + ',类型：' + l.ztype}
-
-                                containerStyle={{ padding: 5, margin: 0, marginBottom: 10 }}
-                            />
-                        ))
-                    }
-
-                </ScrollView>
-
-
-
-                <Flex justify="between" >
-                    <Button backgroundColor='#6495ed' activeOpacity={1}
-                        onPress={this.submitForm_partin.bind(this)}
-                        loading={this.state.submitLoading_PartIn}
-                        title={'部件确认(' + this.state.theboxScanCount + ')'} />
-
-                    {/* <Button backgroundColor='#6495ed' activeOpacity={1}
-                        onPress={this.takePhoto.bind(this)}
-                        loading={this.state.submitLoading_uploadPhoto}
-                        title={'拍照(' + (this.state.photoUploadCount + this.state.photoSyncCount).toString() + '/' + this.state.photoNeedCount + ')'} /> */}
-
-                    <Button backgroundColor='#6495ed' activeOpacity={1}
-                        onPress={this.submitForm_boxclose.bind(this)}
-                        loading={this.state.submitLoading_BoxClose}
-                        title='完工' />
-                </Flex>
-            </WingBlank>
-
+                        <Button backgroundColor='#6495ed' activeOpacity={1}
+                            onPress={this.submitForm_woclose.bind(this)}
+                            loading={this.state.submitLoading_BoxClose}
+                            title='完工' />
+                    </Flex>
+                </WingBlank>
+            </ScrollView>
         );
     }
 }
@@ -702,6 +795,14 @@ const styles = StyleSheet.create({
     container: {
 
 
+    },
+    myLabelStyle: {
+
+    },
+    headercontainer: {
+        marginTop: 0,
+        paddingTop: 0,
+        height: 50,
     },
     textIconInput: {
         flexDirection: 'row',

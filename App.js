@@ -8,7 +8,7 @@ import {
   Platform,
   StyleSheet,
   Text,
-  View, Image, Dimensions, YellowBox,
+  View, Image, Dimensions, YellowBox, Modal,
   Alert
 } from 'react-native';
 import { Provider } from 'react-redux';
@@ -25,9 +25,12 @@ import QCList from './src/drawer/QCList';
 import codePush from "react-native-code-push";
 import Config from 'react-native-config';
 import { getAllExternalFilesDirs } from 'react-native-fs';
+import SQLite from './src/api/SQLite';
+
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const store = configureStore();
+
 
 const CustomDrawerContentComponent = props => (
   <View style={{ flex: 1, backgroundColor: '#43484d' }}>
@@ -52,18 +55,18 @@ const MainRoot = createDrawerNavigator(
       path: '/lists',
       screen: Lists,
     },
-    PPList: {
-      path: '/PPList',
-      screen: PPList,
-    },
-    MMList: {
-      path: '/MMList',
-      screen: MMList,
-    },
-    QCList: {
-      path: '/QCList',
-      screen: QCList,
-    }
+    // PPList: {
+    //   path: '/PPList',
+    //   screen: PPList,
+    // },
+    // MMList: {
+    //   path: '/MMList',
+    //   screen: MMList,
+    // },
+    // QCList: {
+    //   path: '/QCList',
+    //   screen: QCList,
+    // }
   },
   {
     initialRouteName: 'Login',
@@ -94,9 +97,19 @@ const MainRoot = createDrawerNavigator(
 // const codePushOptions = { checkFrequency: codePush.CheckFrequency.MANUAL };
 
 export default class App extends Component {
+  state = {
+    modalVisible: false,
+    downloadProgess: 0
+  }
   //deploymentKey为刚才生成的,打包哪个平台的App就使用哪个Key
   componentDidMount() {
-    this.checkAppUpdate();
+    if (Config.ENV == 'production') {
+      this.checkAppUpdate();
+    }
+    //清空缓存数据
+    var sqLite = new SQLite();
+    sqLite.clean_DBData();
+    //暂时停用此功能，在局域网内比较麻烦
   }
 
   //检查程序更新
@@ -105,10 +118,15 @@ export default class App extends Component {
     codePush.checkForUpdate(deploymentKey).then((update) => {
       if (!update) {
         console.log("已是最新版本");
+        this.setState({ modalVisible: false });
       } else {
         codePush.sync({
           deploymentKey: deploymentKey,
           updateDialog: {
+            appendReleaseDescription: true,
+            descriptionPrefix: "\n\n更新說明:\n",
+            mandatoryContinueButtonLabel: "立即更新",
+            mandatoryUpdateMessage: "发现重要更新,必須更新后才能使用!",
             optionalIgnoreButtonLabel: '稍后',
             optionalInstallButtonLabel: '立即更新',
             optionalUpdateMessage: '有新版本了，是否更新？',
@@ -119,16 +137,31 @@ export default class App extends Component {
           (status) => {
             switch (status) {
               case codePush.SyncStatus.DOWNLOADING_PACKAGE:
-                console.log("DOWNLOADING_PACKAGE");
+                //console.log("DOWNLOADING_PACKAGE");
+                this.setState({ modalVisible: true });
                 break;
-              case codePush.SyncStatus.INSTALLING_UPDATE:
-                console.log(" INSTALLING_UPDATE");
-                Alert.alert("程序更新完成，欢迎继续使用本系统！");
+              case codePush.SyncStatus.INSTALING_UPDATE:
+                //console.log("INSTALLING_UPDALTE");
+                this.setState({ modalVisible: false });
+                //codePush.allowRestart();
+                //Alert.alert("程序更新完成，欢迎继续使用本系统！");
+                break;
+              case codePush.SyncStatus.UP_TO_DATE:
+                this.setState({ modalVisible: false });
+                // console.warn("Installing uptodate.");
+                break;
+              case codePush.SyncStatus.UPDATE_INSTALLED:
+                this.setState({ modalVisible: false });
+                // console.warn("Update installed.");
                 break;
             }
           },
           (progress) => {
-            console.log(progress.receivedBytes + " of " + progress.totalBytes + " received.");
+            let receivedBytes = progress.receivedBytes;
+            let totalBytes = progress.totalBytes;
+            let downloadProgess = (receivedBytes / totalBytes).toFixed(2);
+            this.setState({ downloadProgess: downloadProgess });
+            //console.log(progress.receivedBytes + " of " + progress.totalBytes + " received.");
           }
         );
       }
@@ -137,13 +170,36 @@ export default class App extends Component {
 
   render() {
     YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated', 'Module RCTImageLoader']);
+    let { modalVisible, downloadProgess } = this.state;
+    let percentProgess = String(parseInt(downloadProgess * 100)) + '%';
     return (
-      <Provider store={store}>
-        <MainRoot />
-      </Provider>
+      <View style={{ flex: 1 }}>
+        <Provider store={store}>
+          <MainRoot />
+        </Provider>
+        <Modal
+          visible={modalVisible}
+          animated={'slide'}
+          transparent={true}
+          onRequestClose={() => this.setState({ modalVisible: false })}
+        >
+          <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.4)', flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+            <View style={{ alignItems: 'center', justifyContent: 'center' }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center' }}>
+                <View style={{ width: SCREEN_WIDTH * 0.6, height: 20, borderRadius: 10, backgroundColor: '#e5e5e5' }}>
+                  <View style={{ width: SCREEN_WIDTH * 0.6 * downloadProgess, height: 20, borderRadius: 10, backgroundColor: '#ff6952' }}></View>
+                </View>
+                <Text style={{ color: '#fff', marginLeft: 10, fontSize: 14 }}>{percentProgess}</Text>
+              </View>
+              <Text style={{ color: '#fff', marginTop: 12 }}>{downloadProgess < 1 ? '正在下载更新资源包,请稍候。。。' : '下载完成,应用即將重启'}</Text>
+            </View>
+          </View>
+        </Modal>
+      </View>
     );
   }
 }
+
 
 const styles = StyleSheet.create({
   container: {

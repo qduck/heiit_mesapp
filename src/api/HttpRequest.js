@@ -58,6 +58,7 @@ function HTTPPOST(url, body, token = _token, version = _version, timeout = _time
         dispatchTimeout();
     }, timeout);
 
+    let newbody = (typeof (body) == 'string' ? body : JSON.stringify(body));
     let postPromise = new Promise((resolve, reject) => {
         fetch(baseurl + url, {
             method: 'POST',
@@ -67,7 +68,7 @@ function HTTPPOST(url, body, token = _token, version = _version, timeout = _time
                 'api-version': version,
                 'Authorization': token
             },
-            body: JSON.stringify(body),
+            body: newbody,
         })
             .then((response) => response.json())
             .then((responseData) => {
@@ -104,9 +105,12 @@ function HTTPPOST_Multipart(url, body, token = _token, version = _version, timeo
                 'api-version': version,
                 'Authorization': token
             },
-            body: body
+            body: body,
         })
-            .then((response) => response.json())
+            .then(
+                (response) =>
+                    response.json()
+            )
             .then((responseData) => {
                 resolve(responseData);
             })

@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { StyleSheet, Text, View, Image, TextInput, Alert, Animated, ScrollView } from 'react-native';
+import { StyleSheet, Text, View, Image, TextInput, Alert, Animated, ScrollView, TouchableOpacity } from 'react-native';
 import { Button, Header, Divider } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { Card, WhiteSpace, WingBlank, Flex } from '@ant-design/react-native';
@@ -84,7 +84,7 @@ class WorkList extends React.Component {
             if (user.barRoleText.includes('装箱管理') == true) {
                 this.state.appBtnes.push(
                     {
-                        name: '装配工单扫描',
+                        name: '工单完工扫描',
                         iconname: 'md-construct',
                         pagepath: 'WoClose'
                     }
@@ -135,18 +135,34 @@ class WorkList extends React.Component {
                 )
             }
             ///====================>>>>>>>>>>>>>>>>>>>>QC管理
+
             this.state.appBtnQC.push(
                 {
                     name: '成品拼搭质检',
                     iconname: 'ios-checkbox',
-                    pagepath: 'PSDScan'
+                    pagepath: 'FQCPinDa'
                 }
             )
             this.state.appBtnQC.push(
                 {
                     name: '成品联动质检',
                     iconname: 'md-git-network',
-                    pagepath: 'PSDScan'
+                    pagepath: 'FQCLianDong'
+                }
+            )
+
+            this.state.appBtnQC.push(
+                {
+                    name: '拼搭不合格处理',
+                    iconname: 'md-transgender',
+                    pagepath: 'FQCPinDaHandle'
+                }
+            )
+            this.state.appBtnQC.push(
+                {
+                    name: '联动不合格处理',
+                    iconname: 'md-transgender',
+                    pagepath: 'FQCLianDongHandle'
                 }
             )
         }
@@ -155,17 +171,18 @@ class WorkList extends React.Component {
 
     renderAppBtn(btnitem, index) {
         return (
-            <View style={styles.appBtn} key={index}>
-                <Icon
-                    reverse
-                    name={btnitem.iconname}
-                    type='Ionicons'
-                    color='#0033cc'
-                    size={48}
-                    onPress={this.NaviTo.bind(this, btnitem.pagepath)}
-                />
-                <Text style={{ fontSize: 10 }}>{btnitem.name}</Text>
-            </View>
+            <TouchableOpacity key={btnitem.pagepath} onPress={this.NaviTo.bind(this, btnitem.pagepath)}>
+                <View style={styles.appBtn}>
+                    <Icon
+                        reverse
+                        name={btnitem.iconname}
+                        type='Ionicons'
+                        color='#0033cc'
+                        size={48}
+                    />
+                    <Text style={{ fontSize: 10 }}>{btnitem.name}</Text>
+                </View>
+            </TouchableOpacity>
         );
     }
 
@@ -237,5 +254,6 @@ const styles = StyleSheet.create({
         height: 100,
         padding: 10,
         borderColor: '#fff',
+        overflow: 'hidden',
     }
 });

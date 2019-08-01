@@ -5,7 +5,6 @@ import { createBottomTabNavigator } from 'react-navigation';
 import { Icon } from 'react-native-elements';
 
 import Login from '../view/Login';
-import Lists from '../view/Lists';
 import IndexPage from '../viewbiz/IndexPage';
 import WebViewPage from '../viewc/WebPageView';
 import WorkListPage from '../viewbiz/WorkList';
@@ -51,7 +50,6 @@ const IndexDrawerItem = createBottomTabNavigator(
                         size={26}
                         type='ionicon'
                         color={tintColor}
-                        onPress={() => navigation.openDrawer()}
                     />
                 ),
             }

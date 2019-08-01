@@ -1,6 +1,6 @@
 import React from 'react';
-import { Text, View, TouchableOpacity, Alert, StyleSheet, Dimensions, ToastAndroid, FlatList, ScrollView } from 'react-native';
-import { Input, Button, ListItem } from 'react-native-elements';
+import { Text, View, TouchableOpacity, Alert, StyleSheet, Dimensions, ToastAndroid, FlatList, ScrollView, NativeModules } from 'react-native';
+import { Input, Button, ListItem, Header } from 'react-native-elements';
 import { WhiteSpace, WingBlank, Flex } from '@ant-design/react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { HTTPPOST, HTTPPOST_Multipart } from '../api/HttpRequest';
@@ -11,6 +11,7 @@ import StringUtil from '../api/StringUtil';
 
 import TimerScanDataSync from '../viewc/TimerScanDataSync';
 import ImagePicker from 'react-native-image-picker';
+import { LogInfo, LogException } from '../api/Logger';
 // import ErrorUtils from "ErrorUtils";
 
 // ErrorUtils.setGlobalHandler((e) => {
@@ -18,6 +19,7 @@ import ImagePicker from 'react-native-image-picker';
 //     Alert.alert("异常", JSON.stringify(e))
 // });
 import SQLite from '../api/SQLite';
+var RNFS = require('react-native-fs');
 var sqLite = new SQLite();
 var db;
 
@@ -29,13 +31,16 @@ const photoOptions = {
     cancelButtonTitle: '取消',
     takePhotoButtonTitle: '拍照',
     chooseFromLibraryButtonTitle: '选择相册',
-    quality: 0.75,
+    quality: 0.5,
+    maxWidth: 1920,
+    maxHeight: 1080,
     allowsEditing: false,
     noData: true,
     storageOptions: {
         skipBackup: true,
         path: 'boxing/' + StringUtil.getNowDate(),
-        cameraRoll: false
+        cameraRoll: false,
+        waitUntilSaved: true,
     },
 };
 
@@ -270,7 +275,7 @@ class ScanWoBoxClose extends React.Component {
 
         //判断部件条码是否已经被采集过
         db.transaction((tx) => {
-            tx.executeSql("select count(*) as ret from ScanData_PartInBox where partno='" + this.state.partno + "'", [], (tx, results) => {
+            tx.executeSql("select count(*) as ret from ScanData_PartInBox where partno='" + this.state.partno + "' and synced<>-1", [], (tx, results) => {
                 var len = results.rows.length;
                 if (len >= 1) {
                     let scount = results.rows.item(0).ret;
@@ -359,10 +364,12 @@ class ScanWoBoxClose extends React.Component {
                     }
                     Alert.alert('提醒', '关键部件已经装全！请继续下一步操作。');
                 } else {
+                    LogException('查询箱子【' + this.state.boxno + '】关键部件错误,' + res.code + ':' + res.msg);
                     Alert.alert('查询部件错误！', res.code + ':' + res.msg);
                 }
                 this.setState({ partcheckLoading: false });
             }).catch((error) => {
+                LogException('查询箱子【' + this.state.boxno + '】关键部件异常,' + error.message);
                 Alert.alert('查询部件异常', JSON.stringify(error));
                 this.setState({ partcheckLoading: false });
             });
@@ -476,10 +483,12 @@ class ScanWoBoxClose extends React.Component {
         HTTPPOST('/sm/ExecWGSM', data, token)
             .then((res) => {
                 if (res.code >= 1 && res.code != 3) {
-                    ToastAndroid.show(
-                        '箱子【' + this.state.boxno + '】完工扫描成功，【' + res.data.extraMsg + '】！',
-                        ToastAndroid.LONG
-                    );
+                    // ToastAndroid.show(
+                    //     '箱子【' + this.state.boxno + '】完工扫描成功，【' + res.data.extraMsg + '】！',
+                    //     ToastAndroid.LONG
+                    // );
+                    Alert.alert('装箱完工扫描成功！', '箱子【' + this.state.boxno + '】完工扫描成功，【' + res.data.extraMsg + '】！');
+
                     let plist = [];
                     this.setState({ partlist: plist });
                     this.setState({ boxno: '' });
@@ -543,8 +552,8 @@ class ScanWoBoxClose extends React.Component {
             return;
         }
 
-        ImagePicker.showImagePicker(photoOptions, (response) => {
-            console.log('Response = ', response);
+        ImagePicker.launchCamera(photoOptions, (response) => {
+            //console.log('Response = ', response);
 
             if (response.didCancel) {
                 console.log('User cancelled image picker');
@@ -564,6 +573,15 @@ class ScanWoBoxClose extends React.Component {
                 this.setState({
                     avatarSource: source
                 });
+                let filepath = source.uri.replace('file:///storage/emulated/0', RNFS.ExternalStorageDirectoryPath);
+                RNFS.exists(filepath).then(
+                    (ret) => {
+                        if (!ret) {
+                            Alert.alert('错误', '照片未成功保存，请知晓！');
+                            return;
+                        }
+                    }
+                )
 
                 let photodata = {
                     boxno: this.state.boxno,
@@ -580,28 +598,39 @@ class ScanWoBoxClose extends React.Component {
         });
     }
 
+    //回到主页
+    gohome() {
+        const { navigate } = this.props.navigation;
+        navigate('Index');
+    }
     render() {
         this.props.navigation.navigate('DrawerClose');
 
         return (
-
-            <WingBlank>
-
-
-                <WhiteSpace />
-
-
-                <Input ref="textInput1"
-                    selectTextOnFocus={true}
-                    type="text" value={this.state.boxno}
-                    onChangeText={this.checkboxno}
-                    onSubmitEditing={this.submitForm_partcheck.bind(this)}
-                    autoFocus={this.state.boxno_focused}
-                    style={styles.inputS}
-                    width={SCREEN_WIDTH - 70}
-                    label="整箱唛头码："
+            <ScrollView>
+                <Header
+                    placement="left"
+                    leftComponent={{ icon: 'home', color: '#fff', onPress: this.gohome.bind(this) }}
+                    centerComponent={{ text: '装箱完工扫描', style: { color: '#fff', fontWeight: 'bold' } }}
+                    containerStyle={styles.headercontainer}
                 />
-                {/* <Icon
+                <WingBlank>
+
+
+                    <WhiteSpace />
+
+
+                    <Input ref="textInput1"
+                        selectTextOnFocus={true}
+                        type="text" value={this.state.boxno}
+                        onChangeText={this.checkboxno}
+                        onSubmitEditing={this.submitForm_partcheck.bind(this)}
+                        autoFocus={this.state.boxno_focused}
+                        style={styles.inputS}
+                        width={SCREEN_WIDTH - 70}
+                        label="整箱唛头码："
+                    />
+                    {/* <Icon
                                     reverse
                                     name='md-qr-scanner'
                                     type='Ionicons'
@@ -613,18 +642,18 @@ class ScanWoBoxClose extends React.Component {
 
 
 
-                <WhiteSpace />
-                <Input ref="textInput2"
-                    selectTextOnFocus={true}
-                    type="text" value={this.state.partno}
-                    onChangeText={this.checkpartno}
-                    onSubmitEditing={this.submitForm_partin.bind(this)}
-                    autoFocus={this.state.partno_focused}
-                    style={styles.inputS}
-                    width={SCREEN_WIDTH - 70}
-                    label="关键部件条码："
-                />
-                {/* <Icon
+                    <WhiteSpace />
+                    <Input ref="textInput2"
+                        selectTextOnFocus={true}
+                        type="text" value={this.state.partno}
+                        onChangeText={this.checkpartno}
+                        onSubmitEditing={this.submitForm_partin.bind(this)}
+                        autoFocus={this.state.partno_focused}
+                        style={styles.inputS}
+                        width={SCREEN_WIDTH - 70}
+                        label="关键部件条码："
+                    />
+                    {/* <Icon
                                     reverse
                                     name='md-qr-scanner'
                                     type='Ionicons'
@@ -634,56 +663,56 @@ class ScanWoBoxClose extends React.Component {
                                     onPress={this.showCamera2.bind(this)}
                                 /> */}
 
-                <Flex style={{ padding: 10 }}>
-                    <Text style={{ fontWeight: 'bold' }}>待装箱关键部件：</Text>
-                    <Button buttonStyle={styles.searchbtn}
-                        backgroundColor='#AAA' activeOpacity={1}
-                        onPress={this.submitForm_partcheck.bind(this)}
-                        title='刷新'
-                        loading={this.state.partcheckLoading}
-                    />
+                    <Flex style={{ padding: 10 }}>
+                        <Text style={{ fontWeight: 'bold' }}>待装箱关键部件：</Text>
+                        <Button buttonStyle={styles.searchbtn}
+                            backgroundColor='#AAA' activeOpacity={1}
+                            onPress={this.submitForm_partcheck.bind(this)}
+                            title='刷新'
+                            loading={this.state.partcheckLoading}
+                        />
 
-                    <TimerScanDataSync token={this.props.token} />
+                        <TimerScanDataSync token={this.props.token} />
 
-                </Flex>
+                    </Flex>
 
-                <ScrollView style={styles.partlistclass}>
+                    <ScrollView style={styles.partlistclass} showsVerticalScrollIndicator={true}>
 
-                    {
-                        this.state.partlist.map((l) => (
-                            <ListItem
+                        {
+                            this.state.partlist.map((l) => (
+                                <ListItem
 
-                                key={l.partno}
-                                title={l.partno + ' ' + l.partname}
-                                subtitle={'数量：' + l.number + '，已装箱数量：' + l.innumber + ',类型：' + l.ztype}
+                                    key={l.partno}
+                                    title={l.partno + ' ' + l.partname}
+                                    subtitle={'数量：' + l.number + '，已装箱数量：' + l.innumber + ',类型：' + l.ztype}
 
-                                containerStyle={{ padding: 5, margin: 0, marginBottom: 10 }}
-                            />
-                        ))
-                    }
+                                    containerStyle={{ padding: 5, margin: 0, marginBottom: 10 }}
+                                />
+                            ))
+                        }
 
-                </ScrollView>
+                    </ScrollView>
 
 
 
-                <Flex justify="between" >
-                    <Button backgroundColor='#6495ed' activeOpacity={1}
-                        onPress={this.submitForm_partin.bind(this)}
-                        loading={this.state.submitLoading_PartIn}
-                        title={'部件确认(' + this.state.theboxScanCount + ')'} />
+                    <Flex justify="between" >
+                        <Button backgroundColor='#6495ed' activeOpacity={1}
+                            onPress={this.submitForm_partin.bind(this)}
+                            loading={this.state.submitLoading_PartIn}
+                            title={'部件确认(' + this.state.theboxScanCount + ')'} />
 
-                    <Button backgroundColor='#6495ed' activeOpacity={1}
-                        onPress={this.takePhoto.bind(this)}
-                        loading={this.state.submitLoading_uploadPhoto}
-                        title={'拍照(' + (this.state.photoUploadCount + this.state.photoSyncCount).toString() + '/' + this.state.photoNeedCount + ')'} />
+                        <Button backgroundColor='#6495ed' activeOpacity={1}
+                            onPress={this.takePhoto.bind(this)}
+                            loading={this.state.submitLoading_uploadPhoto}
+                            title={'拍照(' + (this.state.photoUploadCount + this.state.photoSyncCount).toString() + '/' + this.state.photoNeedCount + ')'} />
 
-                    <Button backgroundColor='#6495ed' activeOpacity={1}
-                        onPress={this.submitForm_boxclose.bind(this)}
-                        loading={this.state.submitLoading_BoxClose}
-                        title='完工' />
-                </Flex>
-            </WingBlank>
-
+                        <Button backgroundColor='#6495ed' activeOpacity={1}
+                            onPress={this.submitForm_boxclose.bind(this)}
+                            loading={this.state.submitLoading_BoxClose}
+                            title='完工' />
+                    </Flex>
+                </WingBlank>
+            </ScrollView>
         );
     }
 }
@@ -703,6 +732,12 @@ const styles = StyleSheet.create({
     },
     container: {
 
+
+    },
+    headercontainer: {
+        marginTop: 0,
+        paddingTop: 0,
+        height: 50,
 
     },
     textIconInput: {

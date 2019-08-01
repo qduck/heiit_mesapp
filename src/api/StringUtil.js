@@ -79,6 +79,20 @@ class StringUtil {
         return new Date(timestamp + day * 24 * 3600 * 1000);
     }
 
+    //删除字符中的单引号
+    static replaceDYH(str) {
+        return str.replace(/\'/g, "’");
+    }
+
+    //删除字符中的双引号
+    static replaceSYH(str) {
+        return str.replace(/\"/g, "”");
+    }
+
+    //删除字符中的尖括号
+    static replaceJKH(str) {
+        return str.replace(/</g, "《").replace(/>/g, "》");
+    }
 }
 
 export default StringUtil;

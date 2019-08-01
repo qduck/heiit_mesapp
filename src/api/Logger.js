@@ -13,6 +13,8 @@ var path = appdir + '/' + Config.Log_FileInfo;
 
 var path2 = appdir + '/' + Config.Log_FileExceprion;
 
+var path3 = appdir + '/' + Config.Log_FileError;
+
 RNFS.mkdir(appdir);
 
 function createlogfile(logfilepath) {
@@ -66,7 +68,7 @@ function LogInfo(title, message) {
     let content = title + '[' + getmyDate() + '] ' + message + '。\r\n';
     RNFS.appendFile(path, content, 'utf8')
         .then((success) => {
-            console.log('FILE WRITTEN!');
+            console.log('Log FILE WRITTEN!');
         })
         .catch((err) => {
             console.log(err.message);
@@ -78,7 +80,19 @@ function LogException(title, message) {
     let content = title + '[' + getmyDate() + '] ' + message + '。\r\n';
     RNFS.appendFile(path2, content, 'utf8')
         .then((success) => {
-            console.log('FILE WRITTEN!');
+            console.log('Log FILE WRITTEN!');
+        })
+        .catch((err) => {
+            console.log(err.message);
+        });
+}
+
+function LogError(title, message) {
+
+    let content = title + '[' + getmyDate() + '] ' + message + '。\r\n';
+    RNFS.appendFile(path3, content, 'utf8')
+        .then((success) => {
+            console.log('Log FILE WRITTEN!');
         })
         .catch((err) => {
             console.log(err.message);
@@ -88,5 +102,6 @@ function LogException(title, message) {
 
 createlogfile(path);
 createlogfile(path2);
+createlogfile(path3);
 
-export { LogInfo, LogException }
+export { LogInfo, LogException, LogError }

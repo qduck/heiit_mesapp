@@ -1,6 +1,6 @@
 {
   "name": "xioliftmes",
-  "version": "0.0.1",
+  "version": "0.1.2",
   "private": true,
   "scripts": {
     "start": "node node_modules/react-native/local-cli/cli.js start",
@@ -15,7 +15,7 @@
     "react-dom": "^16.8.6",
     "react-native": "0.58.0",
     "react-native-background-job": "^2.2.0",
-    "react-native-camera": "^2.6.0",
+    "react-native-camera": "^2.11.0",
     "react-native-cli": "^2.0.1",
     "react-native-code-push": "^5.6.0",
     "react-native-config": "^0.11.7",
@@ -23,7 +23,8 @@
     "react-native-easy-toast": "^1.2.0",
     "react-native-elements": "^1.1.0",
     "react-native-fs": "^2.13.3",
-    "react-native-image-picker": "^0.27.1",
+    "react-native-image-crop-picker": "^0.24.1",
+    "react-native-image-picker": "^0.28.0",
     "react-native-modal-dropdown": "^0.6.2",
     "react-native-nfc-manager": "^1.2.2",
     "react-native-qrcode-svg": "^5.1.2",
@@ -37,7 +38,8 @@
     "react-timer-mixin": "^0.13.4",
     "redux": "^4.0.1",
     "redux-thunk": "^2.3.0",
-    "schedule": "^0.4.0"
+    "schedule": "^0.4.0",
+    "victory-native": "^32.0.2"
   },
   "devDependencies": {
     "@babel/core": "^7.4.4",

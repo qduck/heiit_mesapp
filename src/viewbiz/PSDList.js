@@ -209,11 +209,22 @@ class PSDList extends React.Component {
         this.refs.select2.hide();
     }
 
+    //回到主页
+    gohome() {
+        const { navigate } = this.props.navigation;
+        navigate('Index');
+    }
     render() {
         this.props.navigation.navigate('DrawerClose');
 
         return (
             <ScrollView >
+                <Header
+                    placement="left"
+                    leftComponent={{ icon: 'home', color: '#fff', onPress: this.gohome.bind(this) }}
+                    centerComponent={{ text: '仓库物料配送任务', style: { color: '#fff', fontWeight: 'bold' } }}
+                    containerStyle={styles.headercontainer}
+                />
                 <WingBlank>
                     <WhiteSpace />
                     <Text containerStyle={{ alignSelf: 'flex-start' }}>配送工作站点：</Text>
@@ -304,6 +315,12 @@ const styles = StyleSheet.create({
         backgroundColor: '#fff',
         paddingTop: 10,
         justifyContent: 'flex-start',
+
+    },
+    headercontainer: {
+        marginTop: 0,
+        paddingTop: 0,
+        height: 50,
 
     },
     textIconInput: {
