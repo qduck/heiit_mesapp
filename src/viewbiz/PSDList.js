@@ -56,8 +56,11 @@ class PSDList extends React.Component {
     //获取所有车间工作站点
     searchLineList() {
         let { status, user, token } = this.props;
+        let reqdata = {
+            packBarCode: user.loginName
+        };
 
-        HTTPPOST('/sm/getLineBody', null, token)
+        HTTPPOST('/sm/getLineBodyByLoginName', reqdata, token)
             .then((res) => {
                 if (res.code >= 1) {
                     ToastAndroid.show(

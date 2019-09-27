@@ -275,7 +275,7 @@ class ScanWoBoxClose extends React.Component {
 
         //判断部件条码是否已经被采集过
         db.transaction((tx) => {
-            tx.executeSql("select count(*) as ret from ScanData_PartInBox where partno='" + this.state.partno + "' and synced<>-1", [], (tx, results) => {
+            tx.executeSql("select count(*) as ret from ScanData_PartInBox where partno='" + this.state.partno + "' and (synced=1 or synced=0)", [], (tx, results) => {
                 var len = results.rows.length;
                 if (len >= 1) {
                     let scount = results.rows.item(0).ret;

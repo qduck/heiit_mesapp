@@ -192,11 +192,13 @@ class NFCMifareTest extends React.Component {
                         <Text style={{ marginTop: 5, color: 'grey' }}>
                             {`${
                                 tag ? `${JSON.stringify(tag)} (${sectorCount} sectors)` : '---'
-                                }`}</Text>
+                                }`}
+                        </Text>
                         {parsedText && (
                             <Text
                                 style={{ marginTop: 5 }}
-                            >{`Parsed Text:\n${parsedText}`}</Text>
+                            >{`Parsed Text:\n${parsedText}`}
+                            </Text>
                         )}
                         {firstBlockInSector && (
                             <Text

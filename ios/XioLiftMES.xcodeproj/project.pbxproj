@@ -73,6 +73,10 @@
 		BCA6862F5D7F4E9BBD69BDE9 /* libimageCropPicker.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 741E0AE8611B467FA38BA246 /* libimageCropPicker.a */; };
 		899436BE2FAC474EB75D1F7D /* libCodePush.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 9F4483FE6A094F26B0A7CF05 /* libCodePush.a */; };
 		94DE7526FD164E1AA3C0FABD /* libz.tbd in Frameworks */ = {isa = PBXBuildFile; fileRef = 78F2958158C841C39117BD62 /* libz.tbd */; };
+		0881B301EE1B426B957ABD3D /* libRCTJCoreModule.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 3E8C1C3E45194335AE92815D /* libRCTJCoreModule.a */; };
+		8BBB625702C84C4CB05DDC98 /* libRCTJPushModule.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6577FE4FF81342D6AF6A614A /* libRCTJPushModule.a */; };
+		915AA1E716024DE3AF519BB0 /* libRNAudio.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 038A55EE684D4B1295B81F0B /* libRNAudio.a */; };
+		31D838C77E9C48688F018E74 /* libRNSound.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 51E64CB660284BE1B6D52396 /* libRNSound.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -430,6 +434,14 @@
 		DF71EE63B5E044F1814B782D /* CodePush.xcodeproj */ = {isa = PBXFileReference; name = "CodePush.xcodeproj"; path = "../node_modules/react-native-code-push/ios/CodePush.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
 		9F4483FE6A094F26B0A7CF05 /* libCodePush.a */ = {isa = PBXFileReference; name = "libCodePush.a"; path = "libCodePush.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 		78F2958158C841C39117BD62 /* libz.tbd */ = {isa = PBXFileReference; name = "libz.tbd"; path = "usr/lib/libz.tbd"; sourceTree = SDKROOT; fileEncoding = undefined; lastKnownFileType = sourcecode.text-based-dylib-definition; explicitFileType = undefined; includeInIndex = 0; };
+		C99FE46C42A940E59EEA9828 /* RCTJCoreModule.xcodeproj */ = {isa = PBXFileReference; name = "RCTJCoreModule.xcodeproj"; path = "../node_modules/jcore-react-native/ios/RCTJCoreModule.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		3E8C1C3E45194335AE92815D /* libRCTJCoreModule.a */ = {isa = PBXFileReference; name = "libRCTJCoreModule.a"; path = "libRCTJCoreModule.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		357EE42C383845A78766659B /* RCTJPushModule.xcodeproj */ = {isa = PBXFileReference; name = "RCTJPushModule.xcodeproj"; path = "../node_modules/jpush-react-native/ios/RCTJPushModule.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		6577FE4FF81342D6AF6A614A /* libRCTJPushModule.a */ = {isa = PBXFileReference; name = "libRCTJPushModule.a"; path = "libRCTJPushModule.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		69364B52993E490EA972D7A9 /* RNAudio.xcodeproj */ = {isa = PBXFileReference; name = "RNAudio.xcodeproj"; path = "../node_modules/react-native-audio/ios/RNAudio.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		038A55EE684D4B1295B81F0B /* libRNAudio.a */ = {isa = PBXFileReference; name = "libRNAudio.a"; path = "libRNAudio.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		DF80272487814065A5C8F1D1 /* RNSound.xcodeproj */ = {isa = PBXFileReference; name = "RNSound.xcodeproj"; path = "../node_modules/react-native-sound/RNSound.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		51E64CB660284BE1B6D52396 /* libRNSound.a */ = {isa = PBXFileReference; name = "libRNSound.a"; path = "libRNSound.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -475,6 +487,10 @@
 				BCA6862F5D7F4E9BBD69BDE9 /* libimageCropPicker.a in Frameworks */,
 				899436BE2FAC474EB75D1F7D /* libCodePush.a in Frameworks */,
 				94DE7526FD164E1AA3C0FABD /* libz.tbd in Frameworks */,
+				0881B301EE1B426B957ABD3D /* libRCTJCoreModule.a in Frameworks */,
+				8BBB625702C84C4CB05DDC98 /* libRCTJPushModule.a in Frameworks */,
+				915AA1E716024DE3AF519BB0 /* libRNAudio.a in Frameworks */,
+				31D838C77E9C48688F018E74 /* libRNSound.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -680,6 +696,10 @@
 				7700015725DE481DAEB1A0FC /* ReactNativeConfig.xcodeproj */,
 				A671055DA81E4C57A4BE7B94 /* imageCropPicker.xcodeproj */,
 				DF71EE63B5E044F1814B782D /* CodePush.xcodeproj */,
+				C99FE46C42A940E59EEA9828 /* RCTJCoreModule.xcodeproj */,
+				357EE42C383845A78766659B /* RCTJPushModule.xcodeproj */,
+				69364B52993E490EA972D7A9 /* RNAudio.xcodeproj */,
+				DF80272487814065A5C8F1D1 /* RNSound.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -1350,6 +1370,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1369,6 +1393,10 @@
 					"$(SRCROOT)\..\node_modules\react-native-config\ios\ReactNativeConfig",
 					"$(SRCROOT)\..\node_modules\react-native-image-crop-picker\ios/**",
 					"$(SRCROOT)\..\node_modules\react-native-code-push\ios\CodePush/**",
+					"$(SRCROOT)\..\node_modules\jcore-react-native\ios\RCTJCoreModule",
+					"$(SRCROOT)\..\node_modules\jpush-react-native\ios\RCTJPushModule",
+					"$(SRCROOT)\..\node_modules\react-native-audio\ios",
+					"$(SRCROOT)\..\node_modules\react-native-sound\RNSound",
 				);
 			};
 			name = Debug;
@@ -1390,6 +1418,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1409,6 +1441,10 @@
 					"$(SRCROOT)\..\node_modules\react-native-config\ios\ReactNativeConfig",
 					"$(SRCROOT)\..\node_modules\react-native-image-crop-picker\ios/**",
 					"$(SRCROOT)\..\node_modules\react-native-code-push\ios\CodePush/**",
+					"$(SRCROOT)\..\node_modules\jcore-react-native\ios\RCTJCoreModule",
+					"$(SRCROOT)\..\node_modules\jpush-react-native\ios\RCTJPushModule",
+					"$(SRCROOT)\..\node_modules\react-native-audio\ios",
+					"$(SRCROOT)\..\node_modules\react-native-sound\RNSound",
 				);
 			};
 			name = Release;
@@ -1446,6 +1482,10 @@
 					"$(SRCROOT)\..\node_modules\react-native-config\ios\ReactNativeConfig",
 					"$(SRCROOT)\..\node_modules\react-native-image-crop-picker\ios/**",
 					"$(SRCROOT)\..\node_modules\react-native-code-push\ios\CodePush/**",
+					"$(SRCROOT)\..\node_modules\jcore-react-native\ios\RCTJCoreModule",
+					"$(SRCROOT)\..\node_modules\jpush-react-native\ios\RCTJPushModule",
+					"$(SRCROOT)\..\node_modules\react-native-audio\ios",
+					"$(SRCROOT)\..\node_modules\react-native-sound\RNSound",
 				);
 			};
 			name = Debug;
@@ -1482,6 +1522,10 @@
 					"$(SRCROOT)\..\node_modules\react-native-config\ios\ReactNativeConfig",
 					"$(SRCROOT)\..\node_modules\react-native-image-crop-picker\ios/**",
 					"$(SRCROOT)\..\node_modules\react-native-code-push\ios\CodePush/**",
+					"$(SRCROOT)\..\node_modules\jcore-react-native\ios\RCTJCoreModule",
+					"$(SRCROOT)\..\node_modules\jpush-react-native\ios\RCTJPushModule",
+					"$(SRCROOT)\..\node_modules\react-native-audio\ios",
+					"$(SRCROOT)\..\node_modules\react-native-sound\RNSound",
 				);
 			};
 			name = Release;
@@ -1512,6 +1556,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1531,6 +1579,10 @@
 					"$(SRCROOT)\..\node_modules\react-native-config\ios\ReactNativeConfig",
 					"$(SRCROOT)\..\node_modules\react-native-image-crop-picker\ios/**",
 					"$(SRCROOT)\..\node_modules\react-native-code-push\ios\CodePush/**",
+					"$(SRCROOT)\..\node_modules\jcore-react-native\ios\RCTJCoreModule",
+					"$(SRCROOT)\..\node_modules\jpush-react-native\ios\RCTJPushModule",
+					"$(SRCROOT)\..\node_modules\react-native-audio\ios",
+					"$(SRCROOT)\..\node_modules\react-native-sound\RNSound",
 				);
 			};
 			name = Debug;
@@ -1561,6 +1613,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1580,6 +1636,10 @@
 					"$(SRCROOT)\..\node_modules\react-native-config\ios\ReactNativeConfig",
 					"$(SRCROOT)\..\node_modules\react-native-image-crop-picker\ios/**",
 					"$(SRCROOT)\..\node_modules\react-native-code-push\ios\CodePush/**",
+					"$(SRCROOT)\..\node_modules\jcore-react-native\ios\RCTJCoreModule",
+					"$(SRCROOT)\..\node_modules\jpush-react-native\ios\RCTJPushModule",
+					"$(SRCROOT)\..\node_modules\react-native-audio\ios",
+					"$(SRCROOT)\..\node_modules\react-native-sound\RNSound",
 				);
 			};
 			name = Release;
@@ -1609,6 +1669,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1628,6 +1692,10 @@
 					"$(SRCROOT)\..\node_modules\react-native-config\ios\ReactNativeConfig",
 					"$(SRCROOT)\..\node_modules\react-native-image-crop-picker\ios/**",
 					"$(SRCROOT)\..\node_modules\react-native-code-push\ios\CodePush/**",
+					"$(SRCROOT)\..\node_modules\jcore-react-native\ios\RCTJCoreModule",
+					"$(SRCROOT)\..\node_modules\jpush-react-native\ios\RCTJPushModule",
+					"$(SRCROOT)\..\node_modules\react-native-audio\ios",
+					"$(SRCROOT)\..\node_modules\react-native-sound\RNSound",
 				);
 			};
 			name = Debug;
@@ -1657,6 +1725,10 @@
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
+					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1676,6 +1748,10 @@
 					"$(SRCROOT)\..\node_modules\react-native-config\ios\ReactNativeConfig",
 					"$(SRCROOT)\..\node_modules\react-native-image-crop-picker\ios/**",
 					"$(SRCROOT)\..\node_modules\react-native-code-push\ios\CodePush/**",
+					"$(SRCROOT)\..\node_modules\jcore-react-native\ios\RCTJCoreModule",
+					"$(SRCROOT)\..\node_modules\jpush-react-native\ios\RCTJPushModule",
+					"$(SRCROOT)\..\node_modules\react-native-audio\ios",
+					"$(SRCROOT)\..\node_modules\react-native-sound\RNSound",
 				);
 			};
 			name = Release;

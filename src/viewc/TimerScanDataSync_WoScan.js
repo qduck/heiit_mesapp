@@ -148,7 +148,7 @@ class TimerScanDataSync_WoScan extends React.Component {
     //删除SQL LITE中的历史数据
     deletePartScanHistoryData() {
         db.transaction((tx) => {
-            tx.executeSql("delete from ScanData_PartInWo where synced=1", [],
+            tx.executeSql("delete from ScanData_PartInWo where synced=1 and addtime<datetime('now','-1 day')", [],
                 () => {
                     LogInfo('删除已上传工单部件扫描数据成功！');
                 });
@@ -175,7 +175,7 @@ class TimerScanDataSync_WoScan extends React.Component {
 
                         LogInfo('暂无可同步工单照片数据！', '20秒后继续检查。');
                         //清除历史照片文件
-                        for (let indexday = -30; indexday >= -60; indexday = indexday - 1) {
+                        for (let indexday = -2; indexday >= -30; indexday = indexday - 1) {
                             this.deletePhotoFolder(indexday);
                         }
                         this.deletePhotoHistoryData();

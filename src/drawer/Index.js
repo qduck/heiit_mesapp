@@ -57,7 +57,7 @@ const IndexDrawerItem = createBottomTabNavigator(
         Message: {
             screen: WorkMsgPage,
             navigationOptions: {
-                tabBarLabel: '消息',
+                tabBarLabel: '异常消息',
                 tabBarIcon: ({ tintColor, focused }) => (
                     <Icon
                         name='ios-cloud'
@@ -134,7 +134,7 @@ const IndexDrawerItem = createBottomTabNavigator(
         //是否允许滑动切换tab页
         swipeEnabled: true,
         //是否在切换tab页时使用动画
-        animationEnabled: false,
+        animationEnabled: true,
         //是否懒加载
         lazy: true,
         //返回按钮是否会导致tab切换到初始tab页？ 如果是，则设置为initialRoute，否则为none。 缺省为initialRoute。

@@ -26,7 +26,9 @@ const photoOptions = {
     cancelButtonTitle: '取消',
     takePhotoButtonTitle: '拍照',
     chooseFromLibraryButtonTitle: '选择相册',
-    quality: 0.75,
+    quality: 0.5,
+    maxWidth: 1920,
+    maxHeight: 1080,
     allowsEditing: false,
     noData: true,
     storageOptions: {
@@ -123,14 +125,13 @@ class FQCPinDa extends React.Component {
                     //that.setState({ pono_focused: true });
                     //this.setState({ pono: '' });
                 } else {
-                    Alert.alert('错误', '提交拼搭检验结果失败，' + res.msg);
+                    Alert.alert('提交拼搭检验结果失败', res.msg);
                 }
                 //this.setState({ submitLoading: false });
                 this.refs.textInput1.focus();
             }).catch((error) => {
-                Alert.alert('错误', error.msg);
+                Alert.alert('提交拼搭检验结果异常', error.message);
                 //this.setState({ submitLoading: false });
-
             });
         //
     }
@@ -185,13 +186,13 @@ class FQCPinDa extends React.Component {
 
         let datareq = {
             hth: theorderno,
-            // smtype: '0', //0表示拼搭，1表示联动
+            smtype: '0',   //0表示拼搭，1表示联动
             //hgtype: '',  //为空，查询待检验箱子
         }
         this.setState({ fqcboxes: [] });
         this.setState({ otherboxes: [] });
         this.setState({ searchloading: true });
-        HTTPPOST('/sm/getHTHBoxInfo', datareq, token)
+        HTTPPOST('/sm/getHTHBoxInfoAndPhoto', datareq, token)
             .then((res) => {
                 if (res.code >= 1) {
                     if (res.list && res.list.length >= 1) {
@@ -207,6 +208,7 @@ class FQCPinDa extends React.Component {
                         });
                         this.setState({ fqcboxes: qcboxlist });  //待检验箱子数据
                         this.setState({ otherboxes: otherboxlist });
+
                         this.refs.toast.show('合同【' + theorderno + '】待检验箱子，接收成功！', DURATION.LENGTH_LONG);
                         this.setState({ searchloading: false });
                     } else {
@@ -217,6 +219,9 @@ class FQCPinDa extends React.Component {
                     }
 
 
+                    if (res.photoNum) {
+                        this.setState({ photouploaded: res.photoNum });
+                    }
                     //that.setState({ pono_focused: true });
                     //this.setState({ pono: '' });
                 } else {

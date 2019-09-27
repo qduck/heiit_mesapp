@@ -25,6 +25,9 @@ import FQCLianDongScreen from '../viewbiz/qc/FQCLianDong';
 import FQCPinDaHandleScreen from '../viewbiz/qc/FQCPinDaHandle';
 import FQCLianDongHandleScreen from '../viewbiz/qc/FQCLianDongHandle';
 
+import AudioTestScreen from '../viewbiz/test/AudioTest';
+
+
 // import ErrorUtils from "ErrorUtils";
 
 // ErrorUtils.setGlobalHandler((e) => {
@@ -114,14 +117,15 @@ const ListsDrawerItem = createStackNavigator(
         NFCMifareTest: {
             path: '/NFCMifareTest',
             screen: NFCMifareTestScreen,
-
         },
         NFCMultiNdefRecord: {
             path: '/NFCMultiNdefRecord',
             screen: NFCMultiNdefRecordScreen,
-
+        },
+        AudioTest: {
+            path: '/AudioTest',
+            screen: AudioTestScreen,
         }
-
     },
     {
         headerMode: 'none'

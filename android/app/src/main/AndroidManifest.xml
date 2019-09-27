@@ -14,6 +14,7 @@
     <uses-permission android:name="android.permission.ACCESS_WIFI_STATE" />
     <uses-permission android:name="android.permission.CHANGE_WIFI_STATE" />
     <uses-permission android:name="android.permission.NFC" />
+    
     <uses-feature android:name="android.hardware.nfc" android:required="true" />
 
     <application
@@ -41,5 +42,12 @@
       </activity>
       <activity android:name="com.facebook.react.devsupport.DevSettingsActivity" />
       <meta-data android:name="android.max_aspect" android:value="2.4" />
+       <meta-data
+        android:name="JPUSH_APPKEY"
+        android:value="${JPUSH_APPKEY}" />
+    <meta-data
+        android:name="JPUSH_CHANNEL"
+        android:value="${APP_CHANNEL}" />
+ 
     </application>
 </manifest>

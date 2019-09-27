@@ -26,7 +26,9 @@ const photoOptions = {
     cancelButtonTitle: '取消',
     takePhotoButtonTitle: '拍照',
     chooseFromLibraryButtonTitle: '选择相册',
-    quality: 0.75,
+    quality: 0.5,
+    maxWidth: 1920,
+    maxHeight: 1080,
     allowsEditing: false,
     noData: true,
     storageOptions: {
@@ -45,6 +47,7 @@ const videoOptions = {
     allowsEditing: false,
     noData: true,
     mediaType: 'video',
+    durationLimit: 20, //时间上限
     storageOptions: {
         skipBackup: true,
         path: 'oqcvideo/' + StringUtil.getNowDate(),
@@ -129,7 +132,7 @@ class FQCLianDong extends React.Component {
             .then((res) => {
                 if (res.code >= 1) {
 
-                    this.refs.toast.show('提交拼搭检验结果成功！');
+                    this.refs.toast.show('提交联动检验结果成功！');
 
                     this.setState({ orderno: '' });
                     this.setState({ fqcboxes: [] });
@@ -139,12 +142,12 @@ class FQCLianDong extends React.Component {
                     //that.setState({ pono_focused: true });
                     //this.setState({ pono: '' });
                 } else {
-                    Alert.alert('错误', '提交拼搭检验结果失败，' + res.msg);
+                    Alert.alert('提交联动检验结果失败', res.msg);
                 }
                 //this.setState({ submitLoading: false });
 
             }).catch((error) => {
-                Alert.alert('错误', error.msg);
+                Alert.alert('提交联动检验结果异常', error);
                 //this.setState({ submitLoading: false });
             });
         //
@@ -197,11 +200,11 @@ class FQCLianDong extends React.Component {
 
         let datareq = {
             hth: theorderno,
-            // smtype: '0', //0表示拼搭，1表示联动
+            smtype: '1', //0表示拼搭，1表示联动
             //hgtype: '',  //为空，查询待检验箱子
         }
         this.setState({ searchloading: true });
-        HTTPPOST('/sm/getHTHBoxInfo', datareq, token)
+        HTTPPOST('/sm/getHTHBoxInfoAndPhoto', datareq, token)
             .then((res) => {
                 if (res.code >= 1) {
                     if (res.list && res.list.length) {
@@ -218,6 +221,12 @@ class FQCLianDong extends React.Component {
 
                         this.setState({ fqcboxes: qcboxlist });  //待检验箱子数据
                         this.setState({ otherboxes: otherboxlist });
+                    }
+                    if (res.photoNum) {
+                        this.setState({ photouploaded: res.photoNum });
+                    }
+                    if (res.videoNum) {
+                        this.setState({ videouploaded: res.videoNum });
                     }
 
                     this.refs.toast.show('合同【' + theorderno + '】待检验箱子，接收成功！');

@@ -150,12 +150,12 @@ class TimerScanDataSync extends React.Component {
     //删除SQL LITE中的历史数据
     deletePartScanHistoryData() {
         db.transaction((tx) => {
-            tx.executeSql("delete from ScanData_PartInBox where synced=1", [],
+            tx.executeSql("delete from ScanData_PartInBox where synced=1 and addtime<datetime('now','-1 day')", [],
                 () => {
-                    LogInfo('删除已上传装箱部件扫描数据成功！');
+                    LogInfo('删除已上传装箱部件扫描数据（历史数据）成功！');
                 });
         }, (error2) => {
-            LogException('删除已上传装箱部件扫描数据异常：', '详情：' + error2.message);
+            LogException('删除已上传装箱部件扫描数据（历史数据）异常：', '详情：' + error2.message);
         });
     }
 
@@ -177,7 +177,7 @@ class TimerScanDataSync extends React.Component {
                         //清除历史照片文件
                         LogInfo('暂无可同步工单照片数据！', '20秒后继续检查。');
                         //清除历史照片文件
-                        for (let indexday = -30; indexday >= -60; indexday = indexday - 1) {
+                        for (let indexday = -2; indexday >= -30; indexday = indexday - 1) {
                             this.deletePhotoFolder(indexday);
                         }
                         this.deletePhotoHistoryData();

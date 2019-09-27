@@ -70,7 +70,6 @@ class Lists extends React.Component {
                     }
                 )
             }
-
             if (user.barRoleText.includes('发运管理') == true) {
                 this.state.appBtnes.push(
                     {

@@ -26,6 +26,7 @@ import codePush from "react-native-code-push";
 import Config from 'react-native-config';
 import { getAllExternalFilesDirs } from 'react-native-fs';
 import SQLite from './src/api/SQLite';
+import { LogInfo, LogException } from './src/api/Logger';
 
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -165,7 +166,10 @@ export default class App extends Component {
           }
         );
       }
-    }).catch()
+    }).catch((error) => {
+      LogException('程序更新异常！' + error);
+      return;
+    })
   }
 
   render() {

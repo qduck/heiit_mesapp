@@ -1,6 +1,6 @@
 import React, { Component } from 'react';
 
-import { StyleSheet, ScrollView, Text, View, Image, TextInput, Alert, YellowBox, TouchableOpacity, Dimensions } from 'react-native';
+import { StyleSheet, ScrollView, Text, View, Image, TextInput, Alert, YellowBox, TouchableOpacity, Dimensions, Platform } from 'react-native';
 import { Input, Button } from 'react-native-elements';
 import { WhiteSpace, WingBlank, Flex } from '@ant-design/react-native';
 import Icon from 'react-native-vector-icons/FontAwesome';
@@ -8,6 +8,7 @@ import Icon from 'react-native-vector-icons/FontAwesome';
 import { connect } from 'react-redux';
 import * as loginAction from '../store/actions/Login'
 import Config from 'react-native-config';
+import NfcManager, { Ndef } from 'react-native-nfc-manager';
 // import ErrorUtils from "ErrorUtils";
 
 // ErrorUtils.setGlobalHandler((e) => {
@@ -31,6 +32,11 @@ class Login extends React.Component {
             password: Config.User_Password,  //测试密码
             password_emessage: '',
             step: 1, //步骤1：填写表单；步骤2：登陆过程
+            //下面是NFC相关的属性
+            supported: true,
+            enabled: false,
+            tag: {},
+            parsed: null,
         };
 
         this.checkusername = this.checkusername.bind(this);
@@ -65,11 +71,85 @@ class Login extends React.Component {
 
     }
 
+    componentDidMount() {
+        this.setState({ tag: null });
+        NfcManager.isSupported()
+            .then(supported => {
+                this.setState({ supported });
+                if (supported) {
+                    this._startNfc();
+                }
+            })
+    }
+
+    _startNfc() {
+        NfcManager.start({
+            onSessionClosedIOS: () => {
+                console.log('ios session closed');
+            }
+        })
+            .then(result => {
+                console.log('start OK', result);
+            })
+            .catch(error => {
+                console.warn('start fail', error);
+                this.setState({ supported: false });
+            })
+
+        if (Platform.OS === 'android') {
+            NfcManager.getLaunchTagEvent()
+                .then(tag => {
+                    console.log('launch tag', tag);
+                    if (tag) {
+                        this.setState({ tag });
+                    }
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+            NfcManager.isEnabled()
+                .then(enabled => {
+                    this.setState({ enabled });
+                })
+                .catch(err => {
+                    console.log(err);
+                })
+
+            NfcManager.onStateChanged(
+                event => {
+                    if (event.state === 'on') {
+                        this.setState({ enabled: true });
+                    } else if (event.state === 'off') {
+                        this.setState({ enabled: false });
+                    } else if (event.state === 'turning_on') {
+                        // do whatever you want
+                    } else if (event.state === 'turning_off') {
+                        // do whatever you want
+                    }
+                }
+            )
+                .then(sub => {
+                    this._stateChangedSubscription = sub;
+                    // remember to call this._stateChangedSubscription.remove()
+                    // when you don't want to listen to this anymore
+                })
+                .catch(err => {
+                    console.warn(err);
+                })
+        }
+    }
+
     //在组件完成更新后立即调用。在初始化时不会被调用
     componentDidUpdate() {
         let { status } = this.props;
         if (status == '1' && this.state.step == 2) {
             this.props.navigation.navigate('Index');
+        }
+    }
+
+    componentWillUnmount() {
+        if (this._stateChangedSubscription) {
+            this._stateChangedSubscription.remove();
         }
     }
 
@@ -88,9 +168,10 @@ class Login extends React.Component {
         } else if (status == '123') {
             submitLoading = true;
         }
-
+        let { tag } = this.state;
 
         return (
+
             <ScrollView>
                 <WingBlank>
                     <WhiteSpace />
@@ -136,11 +217,11 @@ class Login extends React.Component {
 
                         <Button
                             onPress={this.submitLogin.bind(this)}
-                            loading={submitLoading} title="登录" />
-
+                            loading={submitLoading} title="登   录 （支持员工卡识别进入）" />
+                        <Text>{tag ? '识别到卡：' + tag.id + '' : ''}</Text>
                     </WingBlank>
                     <View style={styles.copyright}>
-                        <Text>copyright: XioLift IT V1.0.7</Text>
+                        <Text>copyright: XioLift IT V{Config.Version}</Text>
                     </View>
                 </WingBlank>
             </ScrollView>

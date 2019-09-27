@@ -1,8 +1,12 @@
 package com.xioliftmes;
 
 import android.app.Application;
+import android.support.multidex.MultiDex;
 
 import com.facebook.react.ReactApplication;
+import com.zmxv.RNSound.RNSoundPackage;
+import com.rnim.rn.audio.ReactNativeAudioPackage;
+import cn.jiguang.plugins.push.JPushPackage;
 import com.reactnative.ivpusic.imagepicker.PickerPackage;
 import com.lugg.ReactNativeConfig.ReactNativeConfigPackage;
 import org.reactnative.camera.RNCameraPackage;
@@ -40,8 +44,9 @@ public class MainApplication extends Application implements ReactApplication {
 
     @Override
     protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(new SQLitePluginPackage(), new MainReactPackage(), new PickerPackage(),
-          new ReactNativeConfigPackage(), new RNCameraPackage(), new RNFSPackage(),
+      return Arrays.<ReactPackage>asList(new SQLitePluginPackage(), new MainReactPackage(), new RNSoundPackage(),
+          new ReactNativeAudioPackage(), new JPushPackage(), new PickerPackage(), new ReactNativeConfigPackage(),
+          new RNCameraPackage(), new RNFSPackage(),
           new CodePush(BuildConfig.Code_Push_deploymentKey, getApplicationContext(), BuildConfig.DEBUG,
               BuildConfig.Code_Push_Server),
           new SvgPackage(), new BackgroundJobPackage(), new RSSignatureCapturePackage(), new ImagePickerPackage(),
@@ -59,9 +64,17 @@ public class MainApplication extends Application implements ReactApplication {
     return mReactNativeHost;
   }
 
+  // @Override
+  // public void attachBaseContext() {
+  // MultiDex.install(this);
+  // }
+
   @Override
   public void onCreate() {
     super.onCreate();
     SoLoader.init(this, /* native exopackage */ false);
+    // 调用此方法：点击通知让应用从后台切到前台
+    // JPushModule.registerActivityLifecycle(this);
   }
+
 }

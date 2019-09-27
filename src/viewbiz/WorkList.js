@@ -27,6 +27,8 @@ class WorkList extends React.Component {
             appBtnMM: [],
             //质检管理功能按钮
             appBtnQC: [],
+            //开发测试使用
+            appBtnTest: [],
             //默认打开的结点
             activeSections: [0, 1, 2, 3],
         };
@@ -136,35 +138,63 @@ class WorkList extends React.Component {
             }
             ///====================>>>>>>>>>>>>>>>>>>>>QC管理
 
-            this.state.appBtnQC.push(
-                {
-                    name: '成品拼搭质检',
-                    iconname: 'ios-checkbox',
-                    pagepath: 'FQCPinDa'
-                }
-            )
-            this.state.appBtnQC.push(
-                {
-                    name: '成品联动质检',
-                    iconname: 'md-git-network',
-                    pagepath: 'FQCLianDong'
-                }
-            )
+            if (user.barRoleText.includes('成品质检') == true) {
+                this.state.appBtnQC.push(
+                    {
+                        name: '成品拼搭质检',
+                        iconname: 'ios-checkbox',
+                        pagepath: 'FQCPinDa'
+                    }
+                )
+                this.state.appBtnQC.push(
+                    {
+                        name: '成品联动质检',
+                        iconname: 'md-git-network',
+                        pagepath: 'FQCLianDong'
+                    }
+                )
 
-            this.state.appBtnQC.push(
-                {
-                    name: '拼搭不合格处理',
-                    iconname: 'md-transgender',
-                    pagepath: 'FQCPinDaHandle'
-                }
-            )
-            this.state.appBtnQC.push(
-                {
-                    name: '联动不合格处理',
-                    iconname: 'md-transgender',
-                    pagepath: 'FQCLianDongHandle'
-                }
-            )
+                this.state.appBtnQC.push(
+                    {
+                        name: '拼搭不合格处理',
+                        iconname: 'md-transgender',
+                        pagepath: 'FQCPinDaHandle'
+                    }
+                )
+                this.state.appBtnQC.push(
+                    {
+                        name: '联动不合格处理',
+                        iconname: 'md-transgender',
+                        pagepath: 'FQCLianDongHandle'
+                    }
+                )
+            }
+            ///====================>>>>>>>>>>>>>>>>>>>>开发测试
+            if (user.loginName == 'admin') {
+                this.state.appBtnTest.push(
+                    {
+                        name: 'NFC_M1TEST',
+                        iconname: 'md-code-working',
+                        pagepath: 'NFCMifareTest'
+                    }
+                );
+                this.state.appBtnTest.push(
+                    {
+                        name: 'NFC_NdefTEST',
+                        iconname: 'md-code-working',
+                        pagepath: 'NFCMultiNdefRecord'
+                    }
+                );
+
+                this.state.appBtnTest.push(
+                    {
+                        name: '音频操作测试',
+                        iconname: 'md-code-working',
+                        pagepath: 'AudioTest'
+                    }
+                );
+            }
+
         }
     }
 
@@ -189,20 +219,23 @@ class WorkList extends React.Component {
     showAppFunc(title, applist) {
         if (applist && applist.length >= 1) {
             return (
-                <Card full >
-                    <Card.Header
-                        title={title}
-                    />
-                    <Card.Body>
-                        <Flex wrap="wrap">
-                            {
-                                applist.map((item, index) => {
-                                    return this.renderAppBtn(item, index)
-                                })
-                            }
-                        </Flex>
-                    </Card.Body>
-                </Card>
+                <View>
+                    <Card full >
+                        <Card.Header
+                            title={title}
+                        />
+                        <Card.Body>
+                            <Flex wrap="wrap">
+                                {
+                                    applist.map((item, index) => {
+                                        return this.renderAppBtn(item, index)
+                                    })
+                                }
+                            </Flex>
+                        </Card.Body>
+                    </Card>
+                    <WhiteSpace size='xs' />
+                </View>
             )
         } else {
             return;
@@ -218,15 +251,14 @@ class WorkList extends React.Component {
             <ScrollView  >
                 <WhiteSpace size='xs' />
                 {this.showAppFunc("仓储物料管理", this.state.appBtnMM)}
-                <WhiteSpace size='xs' />
+
                 {this.showAppFunc("车间现场管理", this.state.appBtnes)}
-                <WhiteSpace size='xs' />
+
                 {this.showAppFunc("生产管理", this.state.appBtnPP)}
-                <WhiteSpace size='xs' />
+
                 {this.showAppFunc("质检管理", this.state.appBtnQC)}
-                <WhiteSpace size='xs' />
 
-
+                {this.showAppFunc("测试功能", this.state.appBtnTest)}
             </ScrollView>
         );
 

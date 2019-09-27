@@ -181,7 +181,7 @@ export default class SQLite extends Component {
                 'usercode VARCHAR,' +
                 'synced INTEGER,' +
                 'sync_ret INTEGER,' +
-                'sync_retmsg VARCHAR' +
+                'sync_retmsg VARCHAR,' +
                 "addtime TIMESTAMP default (datetime('now', 'localtime'))" +
                 ');';
             tx.executeSql(
@@ -198,7 +198,7 @@ export default class SQLite extends Component {
                 'usercode VARCHAR,' +
                 'synced INTEGER,' +
                 'sync_ret INTEGER,' +
-                'sync_retmsg VARCHAR' +
+                'sync_retmsg VARCHAR,' +
                 "addtime TIMESTAMP default (datetime('now', 'localtime'))" +
                 ');';
             tx.executeSql(
@@ -216,7 +216,7 @@ export default class SQLite extends Component {
                 'partname varchar,' +
                 'quantity float,' +
                 'scannedQuantity float,' +
-                'ztype VARCHAR' +
+                'ztype VARCHAR,' +
                 "addtime TIMESTAMP default (datetime('now', 'localtime'))" +
                 ');';
             tx.executeSql(
@@ -231,7 +231,7 @@ export default class SQLite extends Component {
                 'boxno_nopartial varchar,' +
                 'boxphoto float,' +
                 'boxphototaked float,' +
-                'closed int' +
+                'closed int,' +
                 "addtime TIMESTAMP default (datetime('now', 'localtime'))" +
                 ');';
             tx.executeSql(
@@ -477,7 +477,7 @@ export default class SQLite extends Component {
                 "values(?,?,?,0);";
             let sql2 = "update Todo_PackList set boxphototaked=boxphototaked+1 where boxno='" + boxno + "'";
             tx.executeSql(sql, [boxno, photouri, usercode], () => {
-
+                LogInfo('成功插入装箱照片数据', '箱子：' + boxno + '，扫描人：' + usercode + ',照片：' + photouri);
             }, (err) => {
                 console.log(err);
             }
@@ -514,7 +514,7 @@ export default class SQLite extends Component {
                 'smcount float,' +
                 'synced INTEGER,' +
                 'sync_ret INTEGER,' +
-                'sync_retmsg VARCHAR' +
+                'sync_retmsg VARCHAR,' +
                 "addtime TIMESTAMP default (datetime('now', 'localtime'))" +
                 ');';
             tx.executeSql(
@@ -531,7 +531,7 @@ export default class SQLite extends Component {
                 'usercode VARCHAR,' +
                 'synced INTEGER,' +
                 'sync_ret INTEGER,' +
-                'sync_retmsg VARCHAR' +
+                'sync_retmsg VARCHAR,' +
                 "addtime TIMESTAMP default (datetime('now', 'localtime'))" +
                 ');';
             tx.executeSql(
@@ -548,7 +548,7 @@ export default class SQLite extends Component {
                 'partname varchar,' +
                 'quantity float,' +
                 'scannedQuantity float,' +
-                'ztype VARCHAR' +
+                'ztype VARCHAR,' +
                 "addtime TIMESTAMP default (datetime('now', 'localtime'))" +
                 ');';
             tx.executeSql(
@@ -562,7 +562,7 @@ export default class SQLite extends Component {
                 'id INTEGER PRIMARY KEY  AUTOINCREMENT,' +
                 'wono varchar,' +
                 'boxphoto float,' +
-                'boxphototaked float' +
+                'boxphototaked float,' +
                 "addtime TIMESTAMP default (datetime('now', 'localtime'))" +
                 ');';
             tx.executeSql(

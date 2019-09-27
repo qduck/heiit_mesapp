@@ -24,6 +24,25 @@ export const login = (user) => {
     }
 }
 
+//按
+export const loginbynfc = (nfcid) => {
+    return dispatch => {
+        dispatch(isLogining());
+        // 模拟用户登录
+
+        let result = HTTPPOST('/sm/loginbynfc', nfcid)
+            .then((res) => {
+                if (res.code == 0) {
+                    dispatch(loginSuccess(true, res.data, res.token)); // 登录请求完成
+                } else {
+                    dispatch(loginError(res.msg)); // 登录请求完成
+                }
+            }).catch((error) => {
+                dispatch(loginError(error)); // 登录请求出错
+            })
+    }
+}
+
 //登陆结束
 export const end = () => {
     return dispatch => {
