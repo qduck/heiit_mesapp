@@ -193,6 +193,14 @@ class WorkList extends React.Component {
                         pagepath: 'AudioTest'
                     }
                 );
+
+                this.state.appBtnTest.push(
+                    {
+                        name: '消息推送',
+                        iconname: 'md-code-working',
+                        pagepath: 'JPushMessageTest'
+                    }
+                );
             }
 
         }

@@ -328,7 +328,7 @@ export default class SQLite extends Component {
     }
 
     //插入待装箱部件信息
-    insertData_Todo_PartList(partData) {
+    async insertData_Todo_PartList(partData) {
         let len = partData.length;
         if (len == 0) {
             return;
@@ -339,7 +339,7 @@ export default class SQLite extends Component {
         let theboxno_nopartial = partData[0].boxno_nopartial;
         let theboxno = partData[0].boxno;
 
-        db.transaction(async (tx) => {
+        await db.transaction(async (tx) => {
             let IsSyncing = false;
             await tx.executeSql("select count(*) as ret from ScanData_PartInBox where boxno='" + theboxno + "' and synced=0", [], (tx, results) => {
                 let synclen = results.rows.length;

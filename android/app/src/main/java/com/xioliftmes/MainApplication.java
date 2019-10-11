@@ -6,7 +6,7 @@ import android.support.multidex.MultiDex;
 import com.facebook.react.ReactApplication;
 import com.zmxv.RNSound.RNSoundPackage;
 import com.rnim.rn.audio.ReactNativeAudioPackage;
-import cn.jiguang.plugins.push.JPushPackage;
+
 import com.reactnative.ivpusic.imagepicker.PickerPackage;
 import com.lugg.ReactNativeConfig.ReactNativeConfigPackage;
 import org.reactnative.camera.RNCameraPackage;
@@ -17,18 +17,19 @@ import com.pilloxa.backgroundjob.BackgroundJobPackage;
 import com.rssignaturecapture.RSSignatureCapturePackage;
 import com.imagepicker.ImagePickerPackage;
 import community.revteltech.nfc.NfcManagerPackage;
-import org.reactnative.camera.RNCameraPackage;
 import com.oblador.vectoricons.VectorIconsPackage;
 import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
-
+import cn.jpush.reactnativejpush.JPushPackage;//极光推送
 import java.util.Arrays;
 import java.util.List;
 import org.pgsqlite.SQLitePluginPackage;
 
 public class MainApplication extends Application implements ReactApplication {
+  private boolean SHUTDOWN_TOAST = true;// 极光推送关闭初始化成功的toast框
+  private boolean SHUTDOWN_LOG = false;// 极光推送
 
   private final ReactNativeHost mReactNativeHost = new ReactNativeHost(this) {
 
@@ -45,8 +46,8 @@ public class MainApplication extends Application implements ReactApplication {
     @Override
     protected List<ReactPackage> getPackages() {
       return Arrays.<ReactPackage>asList(new SQLitePluginPackage(), new MainReactPackage(), new RNSoundPackage(),
-          new ReactNativeAudioPackage(), new JPushPackage(), new PickerPackage(), new ReactNativeConfigPackage(),
-          new RNCameraPackage(), new RNFSPackage(),
+          new ReactNativeAudioPackage(), new JPushPackage(SHUTDOWN_TOAST, SHUTDOWN_LOG), new PickerPackage(),
+          new ReactNativeConfigPackage(), new RNCameraPackage(), new RNFSPackage(),
           new CodePush(BuildConfig.Code_Push_deploymentKey, getApplicationContext(), BuildConfig.DEBUG,
               BuildConfig.Code_Push_Server),
           new SvgPackage(), new BackgroundJobPackage(), new RSSignatureCapturePackage(), new ImagePickerPackage(),

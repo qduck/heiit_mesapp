@@ -26,6 +26,7 @@ import FQCPinDaHandleScreen from '../viewbiz/qc/FQCPinDaHandle';
 import FQCLianDongHandleScreen from '../viewbiz/qc/FQCLianDongHandle';
 
 import AudioTestScreen from '../viewbiz/test/AudioTest';
+import JPushMessageTestScreen from '../viewbiz/test/JPushMessageTest';
 
 
 // import ErrorUtils from "ErrorUtils";
@@ -125,6 +126,11 @@ const ListsDrawerItem = createStackNavigator(
         AudioTest: {
             path: '/AudioTest',
             screen: AudioTestScreen,
+        }
+        ,
+        JPushMessageTest: {
+            path: '/JPushMessageTest',
+            screen: JPushMessageTestScreen,
         }
     },
     {

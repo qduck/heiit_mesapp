@@ -105,6 +105,11 @@ android {
         targetSdkVersion 22
         versionCode 2
         versionName "1.0.10"
+        manifestPlaceholders = [
+                JPUSH_APPKEY: "e629cb84965f37ff266b4cec",
+                APP_CHANNEL : "default"
+        ]
+
         ndk {
             abiFilters "armeabi-v7a", "x86"
         }
