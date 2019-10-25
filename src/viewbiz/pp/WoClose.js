@@ -153,9 +153,24 @@ class WoClose extends React.Component {
             } else if (partbarcode.startsWith('2')) {
                 let partcode = partbarcode.split('|')[0];
                 return partcode.substr(16);
-            } else {
-                Alert.alert('错误！', '异常条码字符类型！无法识别！');
-                return '';
+            }
+            else if (partbarcode.startsWith('3')) {
+                let partcode = partbarcode.split('|')[0];
+                //判断是否是指定合同的部件
+                let PartPCNO = partbarcode.split('|')[1];
+                let ScanPONO = this.state.boxno.split('  ')[0];
+                if (PartPCNO != ScanPONO) {
+                    return ""; //合同不一样，不能扫描入库
+                } else {
+                    return partcode.substr(16);
+                }
+            } else if (partbarcode.startsWith('4')) {
+                let partcode = partbarcode.split('|')[0];
+                return partcode.substr(16);
+            }
+            else {
+                let partcode = partbarcode.split('|')[0];
+                return partcode.substr(16);
             }
         }
     }
@@ -164,6 +179,9 @@ class WoClose extends React.Component {
     checkpartnoInList() {
         let plist = this.state.partlist;
         let thepno = this.getpartnoByPartBarcode();
+        if (thepno == "") {
+            return false;
+        }
 
         let pfinded = plist.find(item => {
             return item.partno == thepno;

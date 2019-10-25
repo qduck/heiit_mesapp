@@ -93,7 +93,7 @@ class FQCLianDong extends React.Component {
     onSwitchChange(index, obj, event) {
         let obj1 = JSON.parse(JSON.stringify(this.state.fqcboxes));
         let newobj = obj1[index];
-        if (newobj.isldhg == '不合格') {
+        if (newobj.isldhg == '不合格' || newobj.isldhg == '待检验') {
             newobj.isldhg = '合格';
         } else {
             newobj.isldhg = '不合格';
@@ -212,7 +212,7 @@ class FQCLianDong extends React.Component {
                         let qcboxlist = [];
                         let otherboxlist = [];
                         res.list.forEach(qcitem => {
-                            if (qcitem.isldhg) {
+                            if (qcitem.isldhg && qcitem.isldhg != '免检') {
                                 qcboxlist.push(qcitem);
                             } else {
                                 otherboxlist.push(qcitem);
@@ -468,10 +468,10 @@ class FQCLianDong extends React.Component {
                                     <List.Item key={l.pkid}
                                         extra={
                                             <Text>
-                                                {l.isldhg == '不合格' ? ' [不合格]' : ' [合格]'}
+                                                {l.isldhg == '不合格' || l.isldhg == '待检验' ? ' [不合格]' : ' [合格]'}
                                                 <Switch
                                                     color="red"
-                                                    checked={l.isldhg == '不合格' ? true : false}
+                                                    checked={l.isldhg == '不合格' || l.isldhg == '待检验' ? true : false}
                                                     onChange={this.onSwitchChange.bind(this, index, l)}
                                                 /></Text>
                                         }

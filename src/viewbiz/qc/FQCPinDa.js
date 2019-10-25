@@ -74,7 +74,7 @@ class FQCPinDa extends React.Component {
     onSwitchChange(index, obj, event) {
         let obj1 = JSON.parse(JSON.stringify(this.state.fqcboxes));
         let newobj = obj1[index];
-        if (newobj.ispdhg == '不合格') {
+        if (newobj.ispdhg == '不合格' || newobj.ispdhg == '待检验') {
             newobj.ispdhg = '合格';
         } else {
             newobj.ispdhg = '不合格';
@@ -200,7 +200,7 @@ class FQCPinDa extends React.Component {
                         let qcboxlist = [];
                         let otherboxlist = [];
                         res.list.forEach(qcitem => {
-                            if (qcitem.ispdhg) {
+                            if (qcitem.ispdhg && qcitem.ispdhg != '免检') {
                                 qcboxlist.push(qcitem);
                             } else {
                                 otherboxlist.push(qcitem);
@@ -393,10 +393,11 @@ class FQCPinDa extends React.Component {
                                     <List.Item key={l.pkid}
                                         extra={
                                             <Text>
-                                                {l.ispdhg == '不合格' ? ' [不合格]' : ' [合格]'}
+                                                {l.ispdhg == '不合格' || l.ispdhg == '待检验' ? ' [不合格]' : ' [合格]'}
                                                 <Switch
                                                     color="red"
-                                                    checked={l.ispdhg == '不合格' ? true : false}
+
+                                                    checked={l.ispdhg == '不合格' || l.ispdhg == '待检验' ? true : false}
                                                     onChange={this.onSwitchChange.bind(this, index, l)}
                                                 /></Text>
                                         }

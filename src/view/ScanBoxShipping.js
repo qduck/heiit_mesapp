@@ -107,7 +107,7 @@ class ScanBoxShipping extends React.Component {
             Alert.alert('错误！', '请选择装车车牌号。');
             return;
         }
-        //this.setState({ submitLoading: true });
+        this.setState({ submitLoading: true });
         //Alert.alert(this.state.serialNum);
         HTTPPOST('/sm/execFYGlFYSM', data, token)
             .then((res) => {
@@ -122,11 +122,11 @@ class ScanBoxShipping extends React.Component {
                     Alert.alert('错误！' + res.code, res.msg);
                     this.refs.textInput1.focus();
                 }
-                //this.setState({ submitLoading: false });
+                this.setState({ submitLoading: false });
             }).catch((error) => {
                 Alert.alert('异常!', error);
                 this.refs.textInput1.focus();
-                //this.setState({ submitLoading: false });
+                this.setState({ submitLoading: false });
             });
 
         this.refs.textInput1.focus();

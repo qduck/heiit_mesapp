@@ -8,6 +8,7 @@ import Login from '../view/Login';
 import Lists from '../view/Lists';
 import Index from './Index';
 import ScanPoInWarehouse from '../view/ScanPoInWarehouse';
+import PoinByLinePage from '../viewbiz/mm/PoinByLine';
 import ScannerCodeScreen from '../viewc/ScannerCodeScreen';
 import TakePhotoScreen from '../viewc/TakePhotoScreen';
 import ScanWoBoxClose from '../view/ScanWoBoxClose';
@@ -49,6 +50,10 @@ const ListsDrawerItem = createStackNavigator(
         PoIn: {
             path: '/PoIn',
             screen: ScanPoInWarehouse,
+        },
+        PoinByLine: {
+            path: '/PoinByLine',
+            screen: PoinByLinePage,
         },
         WoBoxClose: {
             path: '/WoBoxClose',

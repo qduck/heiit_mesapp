@@ -128,9 +128,23 @@ class ScanWoBoxClose extends React.Component {
             } else if (partbarcode.startsWith('2')) {
                 let partcode = partbarcode.split('|')[0];
                 return partcode.substr(16);
-            } else {
-                Alert.alert('错误！', '异常条码字符类型！无法识别！');
-                return '';
+            } else if (partbarcode.startsWith('3')) {
+                let partcode = partbarcode.split('|')[0];
+                //判断是否是指定合同的部件
+                let PartPCNO = partbarcode.split('|')[1];
+                let ScanPONO = this.state.boxno.split('  ')[0];
+                if (PartPCNO != ScanPONO) {
+                    return ""; //合同不一样，不能扫描入库
+                } else {
+                    return partcode.substr(16);
+                }
+            } else if (partbarcode.startsWith('4')) {
+                let partcode = partbarcode.split('|')[0];
+                return partcode.substr(16);
+            }
+            else {
+                let partcode = partbarcode.split('|')[0];
+                return partcode.substr(16);
             }
         }
     }
@@ -139,6 +153,9 @@ class ScanWoBoxClose extends React.Component {
     checkpartnoInList() {
         let plist = this.state.partlist;
         let thepno = this.getpartnoByPartBarcode();
+        if (thepno == "") {
+            return false;
+        }
 
         let pfinded = plist.find(item => {
             return item.partno == thepno;
@@ -268,7 +285,7 @@ class ScanWoBoxClose extends React.Component {
 
         //判断部件是否在待扫描清单中
         if (!this.checkpartnoInList()) {
-            Alert.alert('错误！', '部件【' + this.state.partno + '】不需要扫描，请知晓。', [{ text: 'OK', onPress: () => this.refs.textInput2.focus() }]);
+            Alert.alert('部件错误！', '部件【' + this.state.partno + '】不是需要装箱的部件，请知晓。', [{ text: 'OK', onPress: () => this.refs.textInput2.focus() }]);
             this.setState({ partno: '' });
             return;
         }

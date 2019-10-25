@@ -82,6 +82,13 @@ class WorkList extends React.Component {
                         pagepath: 'PSDList'
                     }
                 )
+                this.state.appBtnMM.push(
+                    {
+                        name: '采购入库(按行)',
+                        iconname: 'ios-log-in',
+                        pagepath: 'PoinByLine'
+                    }
+                )
             }
             if (user.barRoleText.includes('装箱管理') == true) {
                 this.state.appBtnes.push(
