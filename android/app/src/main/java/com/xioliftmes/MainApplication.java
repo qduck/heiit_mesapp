@@ -4,6 +4,7 @@ import android.app.Application;
 import android.support.multidex.MultiDex;
 
 import com.facebook.react.ReactApplication;
+import com.reactnativecommunity.webview.RNCWebViewPackage;
 import com.zmxv.RNSound.RNSoundPackage;
 import com.rnim.rn.audio.ReactNativeAudioPackage;
 
@@ -45,7 +46,8 @@ public class MainApplication extends Application implements ReactApplication {
 
     @Override
     protected List<ReactPackage> getPackages() {
-      return Arrays.<ReactPackage>asList(new SQLitePluginPackage(), new MainReactPackage(), new RNSoundPackage(),
+      return Arrays.<ReactPackage>asList(new SQLitePluginPackage(), new MainReactPackage(),
+            new RNCWebViewPackage(), new RNSoundPackage(),
           new ReactNativeAudioPackage(), new JPushPackage(SHUTDOWN_TOAST, SHUTDOWN_LOG), new PickerPackage(),
           new ReactNativeConfigPackage(), new RNCameraPackage(), new RNFSPackage(),
           new CodePush(BuildConfig.Code_Push_deploymentKey, getApplicationContext(), BuildConfig.DEBUG,

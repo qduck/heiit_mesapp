@@ -1,10 +1,11 @@
 import React, { Component } from 'react';
 
 import { ScrollView, Text, TouchableWithoutFeedback, View, StyleSheet, Image, Dimensions, TouchableOpacity } from 'react-native';
-import { WhiteSpace, WingBlank, Flex, Carousel } from '@ant-design/react-native';
+import { WhiteSpace, WingBlank, Flex, Carousel, Card } from '@ant-design/react-native';
 import { PricingCard } from 'react-native-elements';
 import { HTTPPOST, HTTPGET } from '../api/HttpRequest';
 import { connect } from 'react-redux';
+import { Echarts, echarts } from 'react-native-secharts';
 // import ErrorUtils from "ErrorUtils";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
@@ -24,7 +25,27 @@ class ReportPage extends React.Component {
             ],
             selectedTab: 'index',
             index_ades: [],
+            chartOption1: {
+                title: {
+                    text: 'ECharts demo'
+                },
+                tooltip: {},
+                legend: {
+                    data: ['销量']
+                },
+                xAxis: {
+                    data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"],
+
+                },
+                yAxis: {},
+                series: [{
+                    name: '销量',
+                    type: 'bar',
+                    data: [5, 20, 36, 10, 10, 20]
+                }]
+            }
         }
+        this.echart1 = React.createRef();
     }
 
     //跳转到详情页面
@@ -73,12 +94,22 @@ class ReportPage extends React.Component {
         return (
 
             <ScrollView
-
                 automaticallyAdjustContentInsets={false}
                 showsHorizontalScrollIndicator={false}
                 showsVerticalScrollIndicator={true}
             >
-                <Text>建设中</Text>
+                <WingBlank size="sm">
+                    <WhiteSpace size="sm" />
+                    <Card>
+                        <Card.Header
+                            title="测试MES管理报表"
+                        />
+                        <Card.Body>
+                            <Echarts ref={this.echart1} option={this.state.chartOption1} height={300} />
+                        </Card.Body>
+                    </Card>
+
+                </WingBlank>
             </ScrollView>
 
 

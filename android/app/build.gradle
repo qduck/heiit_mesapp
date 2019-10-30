@@ -166,6 +166,7 @@ android {
 }
 
 dependencies {
+    implementation project(':react-native-webview')
     implementation project(':react-native-sound')
     implementation project(':react-native-audio')
     implementation project(':jpush-react-native')
