@@ -6,6 +6,7 @@ import { Button } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { LogInfo, LogException, LogError } from '../api/Logger';
 
+
 import SQLite from '../api/SQLite';
 import StringUtil from '../api/StringUtil';
 
@@ -13,9 +14,10 @@ var RNFS = require('react-native-fs');
 var sqLite = new SQLite();
 var db;
 
-class TimerScanDataSync_WoScan extends React.Component {
+class TimerScanDataSync_WoScan extends React.PureComponent {
     constructor(props) {
         super(props);
+
         this.timer = null;
         this.timer2 = null;
         this.state = {

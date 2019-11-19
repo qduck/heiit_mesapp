@@ -6,15 +6,17 @@ import { Button } from 'react-native-elements';
 import { connect } from 'react-redux';
 import { LogInfo, LogException, LogError } from '../api/Logger';
 
+
 import SQLite from '../api/SQLite';
 import StringUtil from '../api/StringUtil';
 var RNFS = require('react-native-fs');
 var sqLite = new SQLite();
 var db;
 
-class TimerScanDataSync extends React.Component {
+class TimerScanDataSync extends React.PureComponent {
     constructor(props) {
         super(props);
+
         this.timer = null;
         this.timer2 = null;
         this.state = {
@@ -50,12 +52,22 @@ class TimerScanDataSync extends React.Component {
         }
         //查询
         db.transaction((tx) => {
-            tx.executeSql("select id,usercode,boxno,partno from ScanData_PartInBox where synced=0 LIMIT 1", [],
+            tx.executeSql("select id,usercode,boxno,partno from ScanData_PartInBox where synced=0 LIMIT 1;", [],
                 (tx, results) => {
                     var len = results.rows.length;
                     if (len >= 1) {
                         let u = results.rows.item(0);
                         this.dosync(u, token);
+                        //修改记录状态为对接中状态
+                        // db.transaction((tx) => {
+                        //     tx.executeSql("update ScanData_PartInBox set synced=19 where id=" + u.id, [],
+                        //         () => {
+
+                        //         });
+                        // }, (error2) => {
+                        //     LogException('更新部件扫描数据为对接中异常：', '详情：' + error2.message);
+                        // });
+
                     } else {
                         //暂时没有数据，
                         this.deletePartScanHistoryData();
@@ -65,7 +77,6 @@ class TimerScanDataSync extends React.Component {
                             10000
                         );
                     }
-
                 });
         }, (error) => {
             LogException('查询待同步装箱部件扫描数据异常：' + error.message);

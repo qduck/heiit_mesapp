@@ -234,7 +234,7 @@ class ScanWoBoxClose extends React.Component {
 
         ToastAndroid.show(
             '关键部件【' + this.state.partno + '】插入成功，请继续！',
-            ToastAndroid.LONG
+            ToastAndroid.SHORT
         );
 
         //重新加载待扫描部件清单
@@ -370,7 +370,7 @@ class ScanWoBoxClose extends React.Component {
                     this.refs.textInput2.focus();
                     ToastAndroid.show(
                         '获取未扫描关键部件清单成功，继续！',
-                        ToastAndroid.LONG
+                        ToastAndroid.SHORT
                     );
                 } else if (res.code == -17) {
 

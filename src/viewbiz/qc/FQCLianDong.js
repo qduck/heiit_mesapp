@@ -10,6 +10,7 @@ import ImagePicker from 'react-native-image-picker';
 import { connect } from 'react-redux';
 import Toast, { DURATION } from 'react-native-easy-toast'
 import { LogInfo } from '../../api/Logger';
+import { ProcessingManager } from 'react-native-video-processing';
 // import ErrorUtils from "ErrorUtils";
 
 // ErrorUtils.setGlobalHandler((e) => {
@@ -47,7 +48,9 @@ const videoOptions = {
     allowsEditing: false,
     noData: true,
     mediaType: 'video',
-    durationLimit: 20, //时间上限
+    width: 720,
+    height: 1280,
+    durationLimit: 120, //时间上限
     storageOptions: {
         skipBackup: true,
         path: 'oqcvideo/' + StringUtil.getNowDate(),
@@ -55,6 +58,16 @@ const videoOptions = {
         waitUntilSaved: true,
     },
 };
+
+const compressOptions = {
+    width: 720,
+    height: 1280,
+    bitrateMultiplier: 3,
+    // saveToCameraRoll: true, // default is false, iOS only
+    // saveWithCurrentDate: true, // default is false, iOS only
+    minimumBitrate: 300000,
+    removeAudio: true, // default is false
+}
 
 class FQCLianDong extends React.Component {
     constructor(props) {
@@ -397,6 +410,7 @@ class FQCLianDong extends React.Component {
             }
             else {
                 LogInfo('视频拍摄完成！地址：' + response.uri);
+
                 this.uploadvideo(theorderno, response.uri);
                 //this.refs.toast.show('获取照片【' + image.path + '】成功！');
             }
@@ -404,18 +418,28 @@ class FQCLianDong extends React.Component {
         });
     }
 
-    async uploadvideo(orderno, videopath) {
+    uploadvideo(orderno, videopath) {
         let { status, user, token } = this.props;
 
         let formdata = new FormData();
         formdata.append('usercode', user.code);
 
         formdata.append('HTH', orderno);
-        let videofile = { uri: videopath, type: 'application/octet-stream', name: 'cameravideo.3gp' };
+
+        //console.log(videopath);
+        let videofile = { uri: videopath, type: 'application/octet-stream', name: 'cameravideo' + orderno + '.3gp' };
         formdata.append('file', videofile);
 
+        // ProcessingManager.compress('file:' + videopath, compressOptions) // like VideoPlayer compress options
+        //     .then((data) => {
+        //         console.log('压缩成功!' + data);
+        //     }).catch((err) => {
+        //         Alert.alert('压缩视频文件异常！', '异常原因：' + err);
+        //         this.setState({ videoloading: false });
+        //     });
+        //console.log('视频压缩完成！');
         //开始上传
-        await HTTPPOST_Multipart('/sm/uploadLDSMVideoParam', formdata, token)
+        HTTPPOST_Multipart('/sm/uploadLDSMVideoParam', formdata, token, '1', 120 * 1000)
             .then((res) => {
                 if (res.code > 0) {
                     this.setState({ videouploaded: res.data });
@@ -427,7 +451,6 @@ class FQCLianDong extends React.Component {
             }).catch((err) => {
                 Alert.alert('异常', '上传视频【' + videopath + '】异常！' + err);
                 this.setState({ videoloading: false });
-                //console.log(err);
             })
     }
 

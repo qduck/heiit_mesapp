@@ -35,7 +35,10 @@ class ReportPage extends React.Component {
                 },
                 xAxis: {
                     data: ["衬衫", "羊毛衫", "雪纺衫", "裤子", "高跟鞋", "袜子"],
-
+                    axisLabel: {//坐标轴刻度标签的相关设置。
+                        interval: 0,
+                        rotate: "45"
+                    }
                 },
                 yAxis: {},
                 series: [{
