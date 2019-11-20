@@ -28,6 +28,7 @@ import FQCLianDongHandleScreen from '../viewbiz/qc/FQCLianDongHandle';
 
 import AudioTestScreen from '../viewbiz/test/AudioTest';
 import JPushMessageTestScreen from '../viewbiz/test/JPushMessageTest';
+import ARVR_TESTScreen from '../viewbiz/test/ARVR_TEST'
 
 
 // import ErrorUtils from "ErrorUtils";
@@ -136,6 +137,10 @@ const ListsDrawerItem = createStackNavigator(
         JPushMessageTest: {
             path: '/JPushMessageTest',
             screen: JPushMessageTestScreen,
+        },
+        ARVR_TEST: {
+            path: '/ARVR_TEST',
+            screen: ARVR_TESTScreen,
         }
     },
     {

@@ -65,7 +65,7 @@ function getmyDate() {
 
 function LogInfo(title, message) {
 
-    let content = title + '[' + getmyDate() + '] ' + message + '。\r\n';
+    let content = '[' + getmyDate() + '] ' + title + '==>' + message + '。\r\n';
     RNFS.appendFile(path, content, 'utf8')
         .then((success) => {
             console.log('Log FILE WRITTEN!');
@@ -77,7 +77,7 @@ function LogInfo(title, message) {
 
 function LogException(title, message) {
 
-    let content = title + '[' + getmyDate() + '] ' + message + '。\r\n';
+    let content = '[' + getmyDate() + '] ' + title + '==>' + message + '。\r\n';
     RNFS.appendFile(path2, content, 'utf8')
         .then((success) => {
             console.log('Log FILE WRITTEN!');
@@ -89,7 +89,7 @@ function LogException(title, message) {
 
 function LogError(title, message) {
 
-    let content = title + '[' + getmyDate() + '] ' + message + '。\r\n';
+    let content = '[' + getmyDate() + '] ' + title + '==>' + message + '。\r\n';
     RNFS.appendFile(path3, content, 'utf8')
         .then((success) => {
             console.log('Log FILE WRITTEN!');

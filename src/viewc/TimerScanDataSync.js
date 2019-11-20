@@ -16,9 +16,6 @@ var db;
 class TimerScanDataSync extends React.PureComponent {
     constructor(props) {
         super(props);
-
-        this.timer = null;
-        this.timer2 = null;
         this.state = {
             syncCount: 0,
             getCountLoading: false,
@@ -26,12 +23,15 @@ class TimerScanDataSync extends React.PureComponent {
         };
     }
     componentWillMount() {
+
         if (!db) {
             sqLite.open();
         }
         sqLite.createTable_ScanPartInBox();
     }
     componentDidMount() {
+        this.timer = null;
+        this.timer2 = null;
         //开启数据库
         if (!db) {
             db = sqLite.open();
@@ -89,6 +89,8 @@ class TimerScanDataSync extends React.PureComponent {
             packBarCode: record.boxno,
             partBarCode: record.partno
         };
+
+        LogInfo('提交装箱部件扫描信息：', 'box: ' + data.packBarCode + ' ：part:' + data.partBarCode);
         //同步关键部件数据
         HTTPPOST('/sm/ExecGJJSM', data, token)
             .then((res) => {
@@ -107,6 +109,7 @@ class TimerScanDataSync extends React.PureComponent {
                         LogException('更新装箱部件扫描数据异常：', '异常：' + error.message);
                     });
                 } else {
+                    LogError('提交部件扫描数据，返回错误：', '错误信息：箱子：' + data.packBarCode + '，部件：' + data.partBarCode + ',return：' + res.code + '：' + res.msg);
                     let retcode = '0';
                     if (res.code) {
                         retcode = res.code;
@@ -118,13 +121,16 @@ class TimerScanDataSync extends React.PureComponent {
                         Alert.alert('登录认证已过期', '您的登录认证信息过期，可能长期未重新登录原因导致，请重新登录！');
                         return;
                     }
-
-                    Alert.alert(
-                        '同步装箱部件扫描数据失败！',
-                        '箱子：' + data.packBarCode + '，部件：' + data.partBarCode + ',' + retcode + '：' + res.msg,
-                        [
-                            { text: '暂时跳过', onPress: () => this.jumpPartScanRecord(record.id, retcode, res.msg) }
-                        ]);
+                    if (res.msg) {
+                        Alert.alert(
+                            '同步装箱部件扫描数据失败！',
+                            '箱子：' + data.packBarCode + '，部件：' + data.partBarCode + ',' + retcode + '：' + res.msg,
+                            [
+                                { text: '暂时跳过', onPress: () => this.jumpPartScanRecord(record.id, retcode, res.msg) }
+                            ]);
+                    } else {
+                        this.jumpPartScanRecord(record.id, retcode, res.msg);
+                    }
                 }
             }).catch((error) => {
                 this.timer = setTimeout(() => { this.startSync(this.props.token); }, 3000);

@@ -18,8 +18,7 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
     constructor(props) {
         super(props);
 
-        this.timer = null;
-        this.timer2 = null;
+
         this.state = {
             syncCount: 0,
             getCountLoading: false,
@@ -28,15 +27,18 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
     }
 
     async componentDidMount() {
+        this.timer = null;
+        this.timer2 = null;
         //开启数据库
         if (!db) {
             db = sqLite.open();
         }
         await sqLite.createTable_ForWoComplete();
 
-        if (this.props.token != null && this.props.token != '') {
+        if (this.props.token != null && this.props.token != '' && this.timer == null) {
             this.startSync(this.props.token);
-
+        }
+        if (this.props.token != null && this.props.token != '' && this.timer2 == null) {
             this.startSync2(this.props.token);
         }
     }
@@ -94,6 +96,8 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
                         LogException('更新工单部件扫描记录异常：' + error.message);
                     });
                 } else {
+                    LogError('提交部件扫描数据，返回错误：', '错误信息：工单：' + data.aufnr + '，部件：' + data.partBarCode + ',return：' + res.code + '：' + res.msg);
+
                     let retcode = '0';
                     if (res.code) {
                         retcode = res.code;
@@ -106,12 +110,16 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
                         return;
                     }
 
-                    Alert.alert(
-                        '同步工单部件扫描数据失败！',
-                        '工单：' + data.aufnr + '，部件：' + data.partBarCode + ',' + retcode + '：' + res.msg,
-                        [
-                            { text: '暂时跳过', onPress: () => this.jumpPartScanRecord(record.id, retcode, res.msg) }
-                        ]);
+                    if (res.msg) {
+                        Alert.alert(
+                            '同步工单部件扫描数据失败！',
+                            '工单：' + data.aufnr + '，部件：' + data.partBarCode + ',' + retcode + '：' + res.msg,
+                            [
+                                { text: '暂时跳过', onPress: () => this.jumpPartScanRecord(record.id, retcode, res.msg) }
+                            ]);
+                    } else {
+                        this.jumpPartScanRecord(record.id, retcode, res.msg);
+                    }
                     //console.log(res.msg);
                 }
             }).catch((error) => {

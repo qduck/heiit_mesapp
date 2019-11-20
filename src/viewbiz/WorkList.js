@@ -208,6 +208,14 @@ class WorkList extends React.Component {
                         pagepath: 'JPushMessageTest'
                     }
                 );
+
+                this.state.appBtnTest.push(
+                    {
+                        name: 'AR&VR 测试',
+                        iconname: 'md-code-working',
+                        pagepath: 'ARVR_TEST'
+                    }
+                );
             }
 
         }
