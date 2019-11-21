@@ -10,7 +10,9 @@ class StringUtil {
 
     //是否为数字
     static isRealNum(val) {
-        const result = /^\d+$/.test(val);
+        //数字包含小数点 --- /^\d+(\.\d+)?$/
+        //纯数字---/^\d+$/
+        const result = /^\d+(\.\d+)?$/.test(val);
         return result;
     }
 
