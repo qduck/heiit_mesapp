@@ -480,6 +480,7 @@ class WoClose extends React.Component {
                 this.setState({ partlistLoading: false });
             }).catch((error) => {
                 Alert.alert('查询工单关键部件数据异常', JSON.stringify(error));
+                this.setState({ partlist: [] });
                 this.setState({ partlistLoading: false });
             });
     }

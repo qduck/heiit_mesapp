@@ -93,6 +93,8 @@ class StringUtil {
     static replaceJKH(str) {
         return str.replace(/</g, "《").replace(/>/g, "》");
     }
+
+
 }
 
 export default StringUtil;

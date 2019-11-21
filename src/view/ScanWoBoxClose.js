@@ -354,7 +354,7 @@ class ScanWoBoxClose extends React.Component {
                         }
                         console.info("获取到服务器上的PartList数据，更新本地数据开始！");
                     } else {
-                        this.setState({ partlist: plist });
+                        this.setState({ partlist: [] });
                         if (res.message) {
                             this.state.photoNeedCount = res.message;
                         }
@@ -387,7 +387,8 @@ class ScanWoBoxClose extends React.Component {
                 this.setState({ partcheckLoading: false });
             }).catch((error) => {
                 LogException('查询箱子【' + this.state.boxno + '】关键部件异常,' + error.message);
-                Alert.alert('查询部件异常', JSON.stringify(error));
+                Alert.alert('查询箱子部件异常', '箱子：' + this.state.boxno + '异常：' + error.message);
+                this.setState({ partlist: [] });
                 this.setState({ partcheckLoading: false });
             });
 

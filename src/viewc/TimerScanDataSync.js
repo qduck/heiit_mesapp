@@ -418,6 +418,8 @@ class TimerScanDataSync extends React.PureComponent {
     resetSync() {
         this.timer && clearTimeout(this.timer);
         this.timer2 && clearTimeout(this.timer2);
+        this.timer = null;
+        this.timer2 = null;
 
         if (this.props.token != null && this.props.token != '' && this.timer == null) {
             this.startSync(this.props.token);
