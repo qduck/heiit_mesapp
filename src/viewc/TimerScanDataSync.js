@@ -14,8 +14,13 @@ var sqLite = new SQLite();
 var db;
 
 class TimerScanDataSync extends React.PureComponent {
+    static scanpartsyncing = 0; // 部件扫描数据同步中，1同步中，0--未同步
+    static boxphotosyncing = 0; // 装箱照片同步中，1同步中，0--未同步
+
     constructor(props) {
         super(props);
+        this.timer = null;
+        this.timer2 = null;
         this.state = {
             syncCount: 0,
             getCountLoading: false,
@@ -47,6 +52,13 @@ class TimerScanDataSync extends React.PureComponent {
     }
 
     startSync(token) {
+        //当同步开始执行时，设置
+        if (TimerScanDataSync.scanpartsyncing == 0) {
+            TimerScanDataSync.scanpartsyncing = 1;
+        } else {
+            return;
+        }
+
         if (!db) {
             db = sqLite.open();
         }
@@ -72,6 +84,8 @@ class TimerScanDataSync extends React.PureComponent {
                         //暂时没有数据，
                         this.deletePartScanHistoryData();
                         //开始清空历史数据
+                        TimerScanDataSync.scanpartsyncing = 0; //处理完成
+                        this.timer && clearTimeout(this.timer);
                         this.timer = setTimeout(
                             () => { this.startSync(this.props.token); },
                             10000
@@ -98,11 +112,14 @@ class TimerScanDataSync extends React.PureComponent {
                     db.transaction((tx) => {
                         tx.executeSql("update ScanData_PartInBox set synced=1 where id=" + record.id, [],
                             () => {
+                                TimerScanDataSync.scanpartsyncing = 0; //处理完成
+                                this.timer && clearTimeout(this.timer);
                                 this.timer = setTimeout(
                                     () => { this.startSync(this.props.token); },
                                     1000
                                 );
                                 this.reflashNuSyncData();
+
                                 //console.log('executeSql success！');
                             });
                     }, (error) => {
@@ -132,7 +149,10 @@ class TimerScanDataSync extends React.PureComponent {
                         this.jumpPartScanRecord(record.id, retcode, res.msg);
                     }
                 }
+
             }).catch((error) => {
+                TimerScanDataSync.scanpartsyncing = 0; //处理完成
+                this.timer && clearTimeout(this.timer);
                 this.timer = setTimeout(() => { this.startSync(this.props.token); }, 3000);
 
                 // Alert.alert(
@@ -145,6 +165,7 @@ class TimerScanDataSync extends React.PureComponent {
                 //         }
                 //     ]);
                 LogException('同步装箱部件扫描数据到服务器异常', '箱子：' + data.packBarCode + '，部件：' + data.partBarCode + '，错误信息：' + error.message);
+
             });
     }
 
@@ -153,6 +174,8 @@ class TimerScanDataSync extends React.PureComponent {
         db.transaction((tx) => {
             tx.executeSql("update ScanData_PartInBox set synced=-1,sync_ret=" + ret + ",sync_retmsg='" + msg + "' where id=" + dataid, [],
                 () => {
+                    TimerScanDataSync.scanpartsyncing = 0; //处理完成
+                    this.timer && clearTimeout(this.timer);
                     this.timer = setTimeout(
                         () => { this.startSync(this.props.token); },
                         1000
