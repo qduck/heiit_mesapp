@@ -68,12 +68,7 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
                     } else {
                         //暂时没有数据，
                         this.deletePartScanHistoryData();
-                        TimerScanDataSync_WoScan.scanpartsyncing = 0; //处理完成
-                        this.timer && clearTimeout(this.timer);
-                        this.timer = setTimeout(
-                            () => { this.startSync(this.props.token); },
-                            10000
-                        );
+                        this.restartSync(10000);
                     }
 
                 });
@@ -81,7 +76,15 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
             LogException('查询待同步工单部件扫描数据异常：' + error.message);
         });
     }
-
+    //重新开始同步部件扫描
+    restartSync(outtime) {
+        TimerScanDataSync_WoScan.scanpartsyncing = 0; //处理完成
+        this.timer && clearTimeout(this.timer);
+        this.timer = setTimeout(
+            () => { this.startSync(this.props.token); },
+            outtime
+        );
+    }
 
     dosync(record, token) {
         let data = {
@@ -97,12 +100,8 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
                     db.transaction((tx) => {
                         tx.executeSql("update ScanData_PartInWo set synced=1 where id=" + record.id, [],
                             () => {
-                                TimerScanDataSync_WoScan.scanpartsyncing = 0; //处理完成
-                                this.timer && clearTimeout(this.timer);
-                                this.timer = setTimeout(
-                                    () => { this.startSync(this.props.token); },
-                                    1000
-                                );
+                                this.restartSync(1000);
+
                                 this.reflashNuSyncData();
                                 //console.log('提交数据到服务器，并更新数据成功！！');
                             });
@@ -137,20 +136,8 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
                     //console.log(res.msg);
                 }
             }).catch((error) => {
-                TimerScanDataSync_WoScan.scanpartsyncing = 0; //处理完成
-                this.timer && clearTimeout(this.timer);
-                this.timer = setTimeout(() => { this.startSync(this.props.token); }, 3000);
-                //console.log(error);
+                this.restartSync(3000);
 
-                // Alert.alert(
-                //     '同步工单部件扫描数据异常！',
-                //     '工单：' + data.aufnr + '，部件：' + data.partBarCode + ',' + error,
-                //     [
-                //         {
-                //             text: '修复并继续',
-                //             onPress: () => this.timer = setTimeout(() => { this.startSync(this.props.token); }, 3000)
-                //         }
-                //     ]);
                 LogException('同步工单部件扫描数据到服务器异常', '工单：' + data.aufnr + '，部件：' + data.partBarCode + error.message);
             });
     }
@@ -160,12 +147,8 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
         db.transaction((tx) => {
             tx.executeSql("update ScanData_PartInWo set synced=-1,sync_ret=" + ret + ",sync_retmsg='" + msg + "' where id=" + dataid, [],
                 () => {
-                    TimerScanDataSync_WoScan.scanpartsyncing = 0; //处理完成
-                    this.timer && clearTimeout(this.timer);
-                    this.timer = setTimeout(
-                        () => { this.startSync(this.props.token); },
-                        1000
-                    );
+                    this.restartSync(1000);
+
                     this.reflashNuSyncData();
                 });
         }, (error2) => {
@@ -187,6 +170,13 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
 
     //同步照片=======================================================》》》》》》》》》》》》》》》》》》》
     startSync2(token) {
+        //当同步开始执行时，设置
+        if (TimerScanDataSync_WoScan.boxphotosyncing == 0) {
+            TimerScanDataSync_WoScan.boxphotosyncing = 1;
+        } else {
+            return;
+        }
+
         if (!db) {
             db = sqLite.open();
         }
@@ -209,16 +199,23 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
                         }
                         this.deletePhotoHistoryData();
                         //暂时没有数据，
-                        this.timer2 = setTimeout(
-                            () => { this.startSync2(this.props.token); },
-                            20000
-                        );
+                        this.restartSync2(20000);
+
                     }
 
                 });
         }, (error) => {
             LogException('查询待同步工单照片数据异常：' + error.message);
         });
+    }
+    //待多少秒后，开始同步
+    restartSync2(outtime) {
+        TimerScanDataSync_WoScan.boxphotosyncing = 0; //处理完成
+        this.timer2 && clearTimeout(this.timer2);
+        this.timer2 = setTimeout(
+            () => { this.startSync2(this.props.token); },
+            outtime
+        );
     }
     //同步照片数据
     async dosync2(record, token) {
@@ -249,10 +246,8 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
                                             this.deletePhotoFile(filepath);
                                             this.reflashPhotoNuSyncData();
                                             //LogInfo('同步工单照片成功：', '工单照片同步事件。');
-                                            this.timer2 = setTimeout(
-                                                () => { this.startSync2(this.props.token); },
-                                                1000
-                                            );
+                                            this.restartSync2(1000);
+
                                         });
                                 }, (error) => {
                                     LogException('更新工单照片数据异常：', '异常：' + error.message);
@@ -274,15 +269,8 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
                         }).catch((error) => {
                             let errmsg = error ? error.message : '未知原因';
                             LogException('同步工单完工-照片数据到服务器异常', ' 数据:' + JSON.stringify(record) + ' \r\n异常信息:' + error.message);
-                            //this.timer2 = setTimeout(() => { this.startSync2(this.props.token); }, 3000);
-                            this.retryPhotoRecord(record.id, '-1', errmsg);
 
-                            // Alert.alert('数据同步异常，请检查！', '错误信息：' + error.message, [
-                            //     {
-                            //         text: '修复并继续',
-                            //         onPress: () => this.timer2 = setTimeout(() => { this.startSync2(this.props.token); }, 3000)
-                            //     }
-                            // ]);
+                            this.retryPhotoRecord(record.id, '-1', errmsg);
                         });
                     //照片上传完成
                 }
@@ -307,10 +295,8 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
         db.transaction((tx) => {
             tx.executeSql("delete from ScanData_PhotoInWo where id=" + dataid, [],
                 () => {
-                    this.timer2 = setTimeout(
-                        () => { this.startSync2(this.props.token); },
-                        1000
-                    );
+                    this.restartSync2(1000);
+
                     this.reflashPhotoNuSyncData();
                 });
         }, (error2) => {
@@ -322,10 +308,8 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
         db.transaction((tx) => {
             tx.executeSql("update ScanData_PhotoInWo set synced=-1,sync_ret='" + ret + "',sync_retmsg='" + StringUtil.replaceDYH(msg) + "' where id=" + dataid, [],
                 () => {
-                    this.timer2 = setTimeout(
-                        () => { this.startSync2(this.props.token); },
-                        3000
-                    );
+                    this.restartSync2(3000);
+
                     this.reflashPhotoNuSyncData();
                 });
         }, (error2) => {
@@ -352,10 +336,8 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
                         }
                         tx.executeSql("update ScanData_PhotoInWo set sync_retmsg='" + sync_retmsg + "' where id=" + dataid, [],
                             () => {
-                                this.timer2 = setTimeout(
-                                    () => { this.startSync2(this.props.token); },
-                                    3000
-                                );
+                                this.restartSync2(3000);
+
                             });
                     }
                 }
@@ -417,7 +399,7 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
             console.log(error);
             this.setState({ getCountLoading: false });
         });
-        this.reflashPhotoNuSyncData();
+
     }
 
     reflashPhotoNuSyncData() {
@@ -438,13 +420,25 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
             this.setState({ getCountLoading: false });
         });
 
+    }
+
+    //重置执行器
+    resetSync() {
+        TimerScanDataSync_WoScan.scanpartsyncing = 0;
+        TimerScanDataSync_WoScan.boxphotosyncing = 0;
+        this.timer && clearTimeout(this.timer);
+        this.timer2 && clearTimeout(this.timer2);
+        this.timer = null;
+        this.timer2 = null;
 
         if (this.props.token != null && this.props.token != '' && this.timer == null) {
             this.startSync(this.props.token);
+            LogInfo('重置定时执行器成功！=>1');
         }
 
         if (this.props.token != null && this.props.token != '' && this.timer2 == null) {
             this.startSync2(this.props.token);
+            LogInfo('重置定时执行器成功！=>2');
         }
     }
 
@@ -452,7 +446,7 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
         return (
             <Button buttonStyle={styles.syncbtn}
                 backgroundColor='#00BB3F' activeOpacity={1}
-                onPress={this.reflashNuSyncData.bind(this)}
+                onPress={this.resetSync.bind(this)}
                 title={'同步(' + this.state.syncCount + ',' + this.state.syncPhotoCount + ')'}
                 loading={this.state.getCountLoading}
             />
