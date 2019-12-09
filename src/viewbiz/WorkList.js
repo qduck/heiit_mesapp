@@ -176,6 +176,17 @@ class WorkList extends React.Component {
                     }
                 )
             }
+            ///====================>>>>>>>>>>>>>>>>>>>>IQC管理
+
+            if (user.barRoleText.includes('进货质检') == true || user.loginName == 'admin') {
+                this.state.appBtnQC.push(
+                    {
+                        name: '进货质检',
+                        iconname: 'md-checkbox-outline',
+                        pagepath: 'IQCCheck'
+                    }
+                )
+            }
             ///====================>>>>>>>>>>>>>>>>>>>>开发测试
             if (user.loginName == 'admin') {
                 this.state.appBtnTest.push(

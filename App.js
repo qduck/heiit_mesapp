@@ -173,7 +173,7 @@ export default class App extends Component {
   }
 
   render() {
-    YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated', 'Module RCTImageLoader']);
+    YellowBox.ignoreWarnings(['Warning: isMounted(...) is deprecated', 'Module RCTImageLoader', 'Warning:', 'Switch:']);
     let { modalVisible, downloadProgess } = this.state;
     let percentProgess = String(parseInt(downloadProgess * 100)) + '%';
     return (

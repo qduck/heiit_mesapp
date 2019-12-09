@@ -1,8 +1,8 @@
 import React from 'react';
-import { TextInput, Text, View, ScrollView, TouchableOpacity, Alert, StyleSheet, Dimensions, InteractionManager, KeyboardAvoidingView, Keyboard } from 'react-native';
+import { Text, View, ScrollView, TouchableOpacity, Alert, StyleSheet, Dimensions, InteractionManager, KeyboardAvoidingView, Keyboard, YellowBox, TouchableHighlight } from 'react-native';
 import { Input, FormValidationMessage, Button, Header, CheckBox } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { WhiteSpace, WingBlank, Flex, List, Switch, Modal, Provider } from '@ant-design/react-native';
+import { WhiteSpace, WingBlank, Flex, List, Switch, Modal, Provider, InputItem } from '@ant-design/react-native';
 import { HTTPPOST, HTTPPOST_Multipart } from '../../api/HttpRequest';
 
 import { connect } from 'react-redux';
@@ -13,7 +13,7 @@ const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 
 
-class PoinByLine extends React.Component {
+class IQCUnqualified extends React.Component {
     constructor(props) {
         super(props);
 
@@ -30,7 +30,7 @@ class PoinByLine extends React.Component {
             QJNumber: null,
             QJRemark: "",
             QJList: [], //缺件行记录信息
-            LoadByPoLine: false,
+            HthDialogVisible: false,
         };
 
     }
@@ -245,7 +245,17 @@ class PoinByLine extends React.Component {
         }
     }
 
+    //显示选择合同号清单的列表
+    showSelectHthDialog() {
+        this.setState({ HthDialogVisible: true });
+
+    }
+    onHthChecked() {
+        this.setState({ HthDialogVisible: false });
+    }
+
     render() {
+        YellowBox.ignoreWarnings(['Switch:']);
         const footerButtons = [
             { text: '取消', onPress: () => this.setState({ QJDialogVisible: false }) },
             { text: '确认', onPress: () => this.QJCommit() },
@@ -256,7 +266,7 @@ class PoinByLine extends React.Component {
                     <Header
                         placement="left"
                         leftComponent={{ icon: 'home', color: '#fff', onPress: this.gohome.bind(this) }}
-                        centerComponent={{ text: '采购单入库(按订单行)', style: { color: '#fff', fontWeight: 'bold' } }}
+                        centerComponent={{ text: '进货质检', style: { color: '#fff', fontWeight: 'bold' } }}
                         containerStyle={styles.headercontainer}
                     />
                     <WingBlank size='sm'>
@@ -286,7 +296,7 @@ class PoinByLine extends React.Component {
                                 containerStyle={{ margin: 0, padding: 0 }}
                                 textStyle={{ margin: 0, padding: 0, fontSize: 12 }}
                             /> */}
-                            <Text style={{ fontWeight: 'bold', width: 150, textAlign: 'right', }}>缺件登记</Text>
+                            <Text style={{ fontWeight: 'bold', width: 150, textAlign: 'right', }}>不合格登记</Text>
                         </Flex>
                         <ScrollView style={styles.partlistclass} showsVerticalScrollIndicator={true}>
                             <List>
@@ -323,13 +333,13 @@ class PoinByLine extends React.Component {
                             <Button backgroundColor='#6495ed' activeOpacity={1}
                                 onPress={this.submitForm.bind(this)}
                                 loading={this.state.submitLoading}
-                                title={'确认并入库(缺件行数:' + this.state.quejianCount + ')'} />
+                                title={'提交(不合格行数:' + this.state.quejianCount + ')'} />
                         </Flex>
 
                     </WingBlank>
                     <Toast ref="toast" position="top" positionValue={2} opacity={0.6} />
                     <Modal
-                        title="缺件登记"
+                        title="不合格登记"
                         transparent
                         onClose={this.onClose}
                         maskClosable
@@ -337,20 +347,71 @@ class PoinByLine extends React.Component {
                         closable
                         footer={footerButtons}
                     >
-                        <View style={{ paddingVertical: 20 }}>
-                            <Input
-                                label="缺件数量："
-                                placeholder='请填写缺少的部件数量'
+                        <View style={{ paddingVertical: 10 }}>
+                            {/* <Input
+                                label="不合格数量："
+                                placeholder='请填写不合格的部件数量'
                                 value={this.state.QJNumber}
                                 onChangeText={(text) => this.setState({ QJNumber: text })}
-                            />
-                            <Input
-                                label="缺件原因:"
-                                placeholder='请输入缺件原因'
+                            /> */}
+                            <InputItem
+
+                                value={this.state.QJNumber}
+                                clear
+                                placeholder="不合格数量输入"
+                                labelNumber={5}
+                                onChangeText={(text) => this.setState({ QJNumber: text })}
+                                style={{ padding: 0, margin: 0, }}
+                            >
+                                <Text style={styles.dialogLabel}>不合格数:</Text>
+                            </InputItem>
+                            <InputItem
                                 value={this.state.QJRemark}
+                                clear
+                                placeholder="请输入不合格描述"
+                                labelNumber={5}
                                 onChangeText={(text) => this.setState({ QJRemark: text })}
-                            />
+                                style={{ padding: 0, margin: 0, }}
+                            >
+                                <Text style={styles.dialogLabel}>问题描述:</Text>
+                            </InputItem>
+                            <TouchableHighlight onPress={(ref) => this.showSelectHthDialog(ref)}>
+                                <InputItem
+                                    value={this.state.Hthes}
+                                    clear
+                                    placeholder="指定合同（可选）"
+                                    labelNumber={5}
+                                    style={{ padding: 0, margin: 0, }}
+                                    clear
+                                    editable={false}
+                                >
+                                </InputItem>
+                            </TouchableHighlight>
+
+
                         </View>
+                    </Modal>
+                    <Modal
+                        transparent={false}
+                        visible={this.state.HthDialogVisible}
+                        animationType="slide-up"
+                        onClose={this.onHthChecked}
+                        style={styles.dialogHthModal}
+                    >
+                        <ScrollView style={styles.dialogHthCheck}>
+                            <Text style={{ textAlign: 'center' }}>Content...start</Text>
+                            <Text style={{ textAlign: 'center' }}>Content...</Text>
+                            <Text style={{ textAlign: 'center' }}>Content...</Text>
+                            <Text style={{ textAlign: 'center' }}>Content...</Text>
+                            <Text style={{ textAlign: 'center' }}>Content...</Text>
+                            <Text style={{ textAlign: 'center' }}>Content...</Text>
+
+                            <Text style={{ textAlign: 'center' }}>Content...end</Text>
+                        </ScrollView>
+                        <Button backgroundColor='#6495ed' activeOpacity={1}
+                            onPress={this.onHthChecked.bind(this)}
+                            ref="hthcheckbtn"
+                            title={'确认'} />
                     </Modal>
                 </ScrollView>
             </Provider>
@@ -364,7 +425,7 @@ export default connect(
         user: state.loginIn.user,
         token: state.loginIn.token
     })
-)(PoinByLine)
+)(IQCUnqualified)
 
 
 const styles = StyleSheet.create({
@@ -384,11 +445,22 @@ const styles = StyleSheet.create({
         padding: 3,
         height: SCREEN_HEIGHT - 260,
     },
+    dialogHthModal: {
+
+    },
+    dialogHthCheck: {
+        height: SCREEN_HEIGHT - 65,
+    },
     textIconInput: {
         flexDirection: 'row',
         justifyContent: 'flex-start',
     },
     inputS: {
         paddingRight: 0, marginRight: 0, marginLeft: 20
+    },
+    dialogLabel: {
+        fontWeight: 'bold',
+        textAlign: 'left',
+        fontSize: 15
     }
 });

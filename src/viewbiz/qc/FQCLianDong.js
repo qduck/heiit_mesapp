@@ -9,7 +9,7 @@ import StringUtil from '../../api/StringUtil';
 import ImagePicker from 'react-native-image-picker';
 import { connect } from 'react-redux';
 import Toast, { DURATION } from 'react-native-easy-toast'
-import { LogInfo } from '../../api/Logger';
+import { LogInfo, LogError } from '../../api/Logger';
 import { ProcessingManager } from 'react-native-video-processing';
 // import ErrorUtils from "ErrorUtils";
 
@@ -21,6 +21,7 @@ import { ProcessingManager } from 'react-native-video-processing';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 var RNFS = require('react-native-fs');
+
 
 const photoOptions = {
     title: '请选择',
@@ -50,7 +51,7 @@ const videoOptions = {
     mediaType: 'video',
     width: 720,
     height: 1280,
-    durationLimit: 120, //时间上限
+    durationLimit: 60, //时间上限
     storageOptions: {
         skipBackup: true,
         path: 'oqcvideo/' + StringUtil.getNowDate(),
@@ -427,31 +428,40 @@ class FQCLianDong extends React.Component {
         formdata.append('HTH', orderno);
 
         //console.log(videopath);
-        let videofile = { uri: videopath, type: 'application/octet-stream', name: 'cameravideo' + orderno + '.3gp' };
-        formdata.append('file', videofile);
 
-        // ProcessingManager.compress('file:' + videopath, compressOptions) // like VideoPlayer compress options
-        //     .then((data) => {
-        //         console.log('压缩成功!' + data);
-        //     }).catch((err) => {
-        //         Alert.alert('压缩视频文件异常！', '异常原因：' + err);
-        //         this.setState({ videoloading: false });
-        //     });
-        //console.log('视频压缩完成！');
+
+        RNFS.stat(videopath).then((retobj) => {
+            // console.log('文件路径：' + retobj.originalFilepath);
+            ProcessingManager.compress(retobj.originalFilepath, compressOptions)
+                .then((data) => {
+                    //console.log('压缩成功!' + data);
+                    let videofile = { uri: data.source, type: 'application/octet-stream', name: 'fqcvideo_' + orderno + '.3gp' };
+                    formdata.append('file', videofile);
+                    HTTPPOST_Multipart('/sm/uploadLDSMVideoParam', formdata, token, '1', 120 * 1000)
+                        .then((res) => {
+                            if (res.code > 0) {
+                                this.setState({ videouploaded: res.data });
+                                this.refs.toast.show('上传视频【' + videopath + '】成功！');
+                            } else {
+                                LogError('上传成品检验（联动）视频错误，', '错误：' + res.code + ':' + res.msg);
+                                Alert.alert('错误', '上传视频【' + videopath + '】失败！' + res.code + ':' + res.msg);
+                            }
+                            this.setState({ videoloading: false });
+                        }).catch((err) => {
+
+                            Alert.alert('上传联动视频异常', '上传视频【' + videopath + '】异常！' + err);
+                            this.setState({ videoloading: false });
+                        })
+                }).catch((err) => {
+                    Alert.alert('压缩视频文件异常！', '异常原因：' + err);
+                    this.setState({ videoloading: false });
+                });
+            // console.log('视频压缩完成！');
+        }).catch((err2) => {
+            Alert.alert('获取视频文件信息异常！', '异常原因：' + err2);
+            this.setState({ videoloading: false });
+        });
         //开始上传
-        HTTPPOST_Multipart('/sm/uploadLDSMVideoParam', formdata, token, '1', 120 * 1000)
-            .then((res) => {
-                if (res.code > 0) {
-                    this.setState({ videouploaded: res.data });
-                    this.refs.toast.show('上传视频【' + videopath + '】成功！');
-                } else {
-                    Alert.alert('错误', '上传视频【' + videopath + '】失败！' + res.code + ':' + res.msg);
-                }
-                this.setState({ videoloading: false });
-            }).catch((err) => {
-                Alert.alert('异常', '上传视频【' + videopath + '】异常！' + err);
-                this.setState({ videoloading: false });
-            })
     }
 
     render() {
@@ -463,7 +473,7 @@ class FQCLianDong extends React.Component {
                     centerComponent={{ text: '成品联动检验', style: { color: '#fff', fontWeight: 'bold' } }}
                     containerStyle={styles.headercontainer}
                 />
-                <WingBlank>
+                <WingBlank size='sm'>
                     <WhiteSpace size='sm' />
                     <View style={styles.textIconInput}>
                         <Input ref="textInput1"

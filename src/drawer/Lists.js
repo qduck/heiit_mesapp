@@ -25,6 +25,7 @@ import FQCPinDaScreen from '../viewbiz/qc/FQCPinDa';
 import FQCLianDongScreen from '../viewbiz/qc/FQCLianDong';
 import FQCPinDaHandleScreen from '../viewbiz/qc/FQCPinDaHandle';
 import FQCLianDongHandleScreen from '../viewbiz/qc/FQCLianDongHandle';
+import IQCCheckPage from '../viewbiz/qc/IQCUnqualified';
 
 import AudioTestScreen from '../viewbiz/test/AudioTest';
 import JPushMessageTestScreen from '../viewbiz/test/JPushMessageTest';
@@ -110,6 +111,10 @@ const ListsDrawerItem = createStackNavigator(
         FQCLianDongHandle: {
             path: '/FQCLianDongHandle',
             screen: FQCLianDongHandleScreen,
+        },
+        IQCCheck: {
+            path: '/IQCCheck',
+            screen: IQCCheckPage,
         },
         //下面是通用的业务功能===========================================================================>>
         ScannerCode: {

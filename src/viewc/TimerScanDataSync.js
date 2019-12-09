@@ -116,7 +116,7 @@ class TimerScanDataSync extends React.PureComponent {
                     db.transaction((tx) => {
                         tx.executeSql("update ScanData_PartInBox set synced=1 where id=" + record.id, [],
                             () => {
-                                this.restartSync(1000);
+                                this.restartSync(100);
 
                                 this.reflashNuSyncData();
 

@@ -100,7 +100,7 @@ class TimerScanDataSync_WoScan extends React.PureComponent {
                     db.transaction((tx) => {
                         tx.executeSql("update ScanData_PartInWo set synced=1 where id=" + record.id, [],
                             () => {
-                                this.restartSync(1000);
+                                this.restartSync(100);
 
                                 this.reflashNuSyncData();
                                 //console.log('提交数据到服务器，并更新数据成功！！');

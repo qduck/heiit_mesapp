@@ -120,6 +120,7 @@ const IndexDrawerItem = createBottomTabNavigator(
                 borderTopWidth: 0.2,
                 paddingTop: 1,
                 borderTopColor: '#ccc',
+
             },
             //tab bar的文本样式
             labelStyle: {
@@ -128,6 +129,7 @@ const IndexDrawerItem = createBottomTabNavigator(
             },
             //tab 页指示符的样式 (tab页下面的一条线).
             indicatorStyle: { height: 0 },
+            keyboardHidesTabBar: true
         },
         //tab bar的位置, 可选值： 'top' or 'bottom'
         tabBarPosition: 'bottom',

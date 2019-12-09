@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View, TouchableOpacity, Alert, StyleSheet, Dimensions, ToastAndroid, FlatList, ScrollView, NativeModules } from 'react-native';
 import { Input, Button, ListItem, Header } from 'react-native-elements';
-import { WhiteSpace, WingBlank, Flex } from '@ant-design/react-native';
+import { WhiteSpace, WingBlank, Flex, Toast } from '@ant-design/react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { HTTPPOST, HTTPPOST_Multipart } from '../api/HttpRequest';
 
@@ -11,7 +11,7 @@ import StringUtil from '../api/StringUtil';
 
 import TimerScanDataSync from '../viewc/TimerScanDataSync';
 import ImagePicker from 'react-native-image-picker';
-import { LogInfo, LogException } from '../api/Logger';
+import { LogInfo, LogException, LogError } from '../api/Logger';
 // import ErrorUtils from "ErrorUtils";
 
 // ErrorUtils.setGlobalHandler((e) => {
@@ -527,6 +527,7 @@ class ScanWoBoxClose extends React.Component {
                 }
                 this.setState({ submitLoading_BoxClose: false });
             }).catch((error) => {
+                LogException('装箱完工扫描异常！', '异常信息：' + error.message);
                 Alert.alert('装箱完工扫描异常！', JSON.stringify(error));
                 this.setState({ submitLoading_BoxClose: false });
             });
