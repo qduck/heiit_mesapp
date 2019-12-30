@@ -58,8 +58,8 @@ function getmyDate() {
     var day = date.getDate().toString();
     var hour = date.getHours().toString();
     var minute = date.getMinutes().toString();
-
-    return year + '年' + month + '月' + day + '日' + ' ' + hour + ':' + minute;
+    var second = date.getSeconds().toString();
+    return year + '年' + month + '月' + day + '日' + ' ' + hour + ':' + minute + ':' + second;
 }
 
 

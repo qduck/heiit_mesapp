@@ -27,10 +27,11 @@ import FQCPinDaHandleScreen from '../viewbiz/qc/FQCPinDaHandle';
 import FQCLianDongHandleScreen from '../viewbiz/qc/FQCLianDongHandle';
 import IQCCheckPage from '../viewbiz/qc/IQCUnqualified';
 
+
 import AudioTestScreen from '../viewbiz/test/AudioTest';
 import JPushMessageTestScreen from '../viewbiz/test/JPushMessageTest';
 import ARVR_TESTScreen from '../viewbiz/test/ARVR_TEST'
-
+import BackTestScreen from '../viewbiz/test/backtest';
 
 // import ErrorUtils from "ErrorUtils";
 
@@ -146,6 +147,10 @@ const ListsDrawerItem = createStackNavigator(
         ARVR_TEST: {
             path: '/ARVR_TEST',
             screen: ARVR_TESTScreen,
+        },
+        Back_TEST: {
+            path: '/Back_TEST',
+            screen: BackTestScreen,
         }
     },
     {

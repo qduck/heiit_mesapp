@@ -108,7 +108,9 @@ class WoClose extends React.Component {
 
     }
     componentWillUnmount() {
-
+        this.setState = (state, callback) => {
+            return
+        }
     }
 
     checkworksite(val) {

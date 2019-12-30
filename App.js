@@ -27,7 +27,7 @@ import Config from 'react-native-config';
 import { getAllExternalFilesDirs } from 'react-native-fs';
 import SQLite from './src/api/SQLite';
 import { LogInfo, LogException } from './src/api/Logger';
-
+import BackgroundJob from "react-native-background-job";
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const store = configureStore();
@@ -111,6 +111,9 @@ export default class App extends Component {
     var sqLite = new SQLite();
     sqLite.clean_DBData();
     //暂时停用此功能，在局域网内比较麻烦
+
+    BackgroundJob.cancelAll();
+    LogInfo('后台任务被清除！', '');
   }
 
   //检查程序更新

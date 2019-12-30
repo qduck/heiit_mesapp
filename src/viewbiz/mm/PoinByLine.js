@@ -1,8 +1,8 @@
 import React from 'react';
-import { TextInput, Text, View, ScrollView, TouchableOpacity, Alert, StyleSheet, Dimensions, InteractionManager, KeyboardAvoidingView, Keyboard } from 'react-native';
+import { TextInput, Text, View, ScrollView, TouchableOpacity, Alert, StyleSheet, Dimensions, InteractionManager, KeyboardAvoidingView, Keyboard, TouchableHighlight } from 'react-native';
 import { Input, FormValidationMessage, Button, Header, CheckBox } from 'react-native-elements';
 import Icon from 'react-native-vector-icons/Ionicons';
-import { WhiteSpace, WingBlank, Flex, List, Switch, Modal, Provider } from '@ant-design/react-native';
+import { WhiteSpace, WingBlank, Flex, List, Switch, Modal, Provider, InputItem, Checkbox } from '@ant-design/react-native';
 import { HTTPPOST, HTTPPOST_Multipart } from '../../api/HttpRequest';
 
 import { connect } from 'react-redux';
@@ -11,7 +11,7 @@ import StringUtil from '../../api/StringUtil'
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
-
+const CheckboxItem = Checkbox.CheckboxItem;
 
 class PoinByLine extends React.Component {
     constructor(props) {
@@ -25,12 +25,19 @@ class PoinByLine extends React.Component {
             quejianCount: 0,//缺件记录数
             poList: [],
             posearching: false,
+
             QJDialogVisible: false,
             QJIndex: null,
             QJNumber: null,
             QJRemark: "",
+            QJHthes: [],
+
             QJList: [], //缺件行记录信息
             LoadByPoLine: false,
+            SearchPart: "",
+            partHthList: [],   //部件对应的合同号清单
+            partHthes: [],
+            HthDialogVisible: false,
         };
 
     }
@@ -59,6 +66,16 @@ class PoinByLine extends React.Component {
             for (var qindex = element.linenos.length - 1; qindex >= 0; qindex--) {
                 let lineno = element.linenos[qindex];
                 let linebjnum = element.linenumber[qindex];
+                let linehth = element.linehthes[qindex]; //行的排产编号
+                if (element.qjhthes && element.qjhthes.length >= 1) {
+                    //判断缺件合同号是否是当前行的合同号，如果是，则记录该行不合格，否则，跳过该行
+                    if (element.qjhthes.indexOf(linehth) < 0) {
+                        //不存在
+                        continue;
+                    }
+                }
+
+
                 let lineqjnum = 0; //当前行的缺件数量
                 linebjnum = parseFloat(linebjnum);
                 qjnum = parseFloat(qjnum);
@@ -143,7 +160,9 @@ class PoinByLine extends React.Component {
         }
     }
     componentWillUnmount() {
-
+        this.setState = (state, callback) => {
+            return
+        }
     }
 
     //回到主页
@@ -154,16 +173,20 @@ class PoinByLine extends React.Component {
 
     //缺件开关
     onSwitchChange(index, obj, event) {
+        let oldobj = this.state.poList[index];
+        this.setState({ partHthes: oldobj.hthstr });
 
         this.setState({ QJDialogVisible: true });
         this.setState({ QJIndex: index });
-        let oldobj = this.state.poList[index];
+
         if (oldobj.isquejian && oldobj.isquejian == 1) {
             this.setState({ QJNumber: oldobj.quejiannum });
             this.setState({ QJRemark: oldobj.qjremark });
+            this.setState({ QJHthes: oldobj.qjhthes });
         } else {
             this.setState({ QJNumber: "" });
             this.setState({ QJRemark: "" });
+            this.setState({ QJHthes: [] });
         }
     }
 
@@ -184,7 +207,7 @@ class PoinByLine extends React.Component {
 
                     this.setState({ posearching: false });
                 } else {
-                    Alert.alert('获取未入库物料错误', '订单[' + data.packBarCode + ']' + res.code);
+                    Alert.alert('获取未入库物料错误', '订单[' + data.packBarCode + ']' + res.code + ' ,' + res.message);
                     this.setState({ posearching: false });
                 }
             }).catch((error) => {
@@ -214,17 +237,22 @@ class PoinByLine extends React.Component {
                 newobj.isquejian = 1;
                 newobj.quejiannum = this.state.QJNumber;
                 newobj.qjremark = this.state.QJRemark;
+                newobj.qjhthes = this.state.QJHthes;
+
                 let QJObj = this.state.QJList.filter(item => item.index == this.state.QJIndex);
                 if (QJObj.length > 0) {
                     QJObj[0].qjnum = this.state.QJNumber;
                     QJObj[0].qjremark = this.state.QJRemark;
+                    QJObj[0].qjhthes = this.state.QJHthes;
                 } else {
                     this.state.QJList.push({
                         index: this.state.QJIndex,
                         linenos: newobj.ebelpstr,
                         linenumber: newobj.qjnumstr,
+                        linehthes: newobj.hthstr,
                         qjnum: this.state.QJNumber,
-                        qjremark: this.state.QJRemark
+                        qjremark: this.state.QJRemark,
+                        qjhthes: this.state.QJHthes,
                     });
                 }
                 this.setState({ quejianCount: this.state.QJList.length });
@@ -236,6 +264,7 @@ class PoinByLine extends React.Component {
                 newobj.isquejian = 0;
                 newobj.quejiannum = 0;
                 newobj.qjremark = "";
+                newobj.qjhthes = [];
             }
             obj1.splice(this.state.QJIndex, 1, newobj);
             this.setState({ poList: obj1 });
@@ -243,6 +272,29 @@ class PoinByLine extends React.Component {
         } else {
             Alert.alert('没有显示缺件的行记录！', '行号[' + this.state.QJIndex + ']，请确认！');
         }
+    }
+
+    //显示选择合同号清单的列表
+    showSelectHthDialog() {
+        this.setState({ partHthList: [] });
+        let hthlist = [];
+        this.state.partHthes.forEach((item) => {
+            hthlist.push({ hth: item, ischecked: false });
+        });
+        this.setState({ partHthList: hthlist });
+        this.setState({ HthDialogVisible: true });
+    }
+    //选择不合格的合同号清单
+    onHthChecked() {
+        this.setState({ QJHthes: [] });
+        let qjhthes = [];
+        this.state.partHthList.forEach((item) => {
+            if (item.ischecked) {
+                qjhthes.push(item.hth);
+            }
+        })
+        this.setState({ QJHthes: qjhthes });
+        this.setState({ HthDialogVisible: false });
     }
 
     render() {
@@ -275,24 +327,33 @@ class PoinByLine extends React.Component {
 
                         </View>
                         <WhiteSpace />
-                        <Flex style={{ padding: 10 }} justify="between">
-                            <Text style={{ fontWeight: 'bold' }}>订单行：</Text>
-                            {/* <CheckBox
-                                title='加载明细'
-                                checked={this.state.LoadByPoLine}
-                                style={{ width: 100, }}
-                                onPress={() => this.setState({ LoadByPoLine: !this.state.LoadByPoLine })}
-                                size={16}
-                                containerStyle={{ margin: 0, padding: 0 }}
-                                textStyle={{ margin: 0, padding: 0, fontSize: 12 }}
-                            /> */}
-                            <Text style={{ fontWeight: 'bold', width: 150, textAlign: 'right', }}>缺件登记</Text>
+                        <Flex style={{ padding: 0, margin: 0, paddingBottom: 5, paddingTop: 5 }} justify="between" >
+                            <View style={{
+                                width: 200,
+                                paddingLeft: 2,
+                            }} >
+                                <Flex style={{ padding: 0, margin: 0 }} justify="start" >
+                                    <Text style={{ fontWeight: 'bold', fontSize: 16, width: 65, padding: 0, margin: 0 }}>订单行：</Text>
+                                    <TextInput type="text"
+                                        style={{ fontSize: 14, width: 100, backgroundColor: '#FFF', padding: 0 }}
+                                        ref="SearchPart"
+                                        placeholder="关键字过滤"
+                                        onChangeText={(text) => this.setState({ SearchPart: text })}
+                                        value={this.state.SearchPart}
+                                    />
+                                </Flex>
+                            </View>
+
+                            <Text style={{ fontWeight: 'bold', width: 150, textAlign: 'right', paddingRight: 2 }}>
+                                缺件登记</Text>
                         </Flex>
                         <ScrollView style={styles.partlistclass} showsVerticalScrollIndicator={true}>
                             <List>
                                 {
                                     this.state.poList.map((l, index) => (
-                                        <List.Item key={l.bjh + index} wrap
+                                        <List.Item
+                                            key={l.bjh + index} wrap
+                                            style={(l.bjh.indexOf(this.state.SearchPart) >= 0 || l.maktx.indexOf(this.state.SearchPart) >= 0) ? {} : { display: 'none', }}
                                             extra={
                                                 <Text>
                                                     {'数量:' + l.qjnum + (l.isquejian && l.isquejian == 1 ? ' [缺]' + l.quejiannum : '')}
@@ -350,7 +411,50 @@ class PoinByLine extends React.Component {
                                 value={this.state.QJRemark}
                                 onChangeText={(text) => this.setState({ QJRemark: text })}
                             />
+                            <WhiteSpace /><WhiteSpace />
+                            <Text>下面是可选项</Text>
+                            <List style={{ marginTop: 12 }}>
+                                <List.Item style={{ padding: 0, margin: 0 }}>
+                                    <TouchableHighlight onPress={(ref) => this.showSelectHthDialog(ref)}>
+                                        <InputItem
+                                            value={this.state.QJHthes.join(';')}
+                                            clear
+                                            placeholder="指定合同号"
+                                            labelNumber={5}
+                                            style={{ padding: 0, margin: 0, }}
+                                            clear
+                                            editable={false}
+                                        >
+                                        </InputItem>
+                                    </TouchableHighlight>
+                                </List.Item>
+                            </List>
                         </View>
+                    </Modal>
+                    <Modal
+                        transparent={false}
+                        visible={this.state.HthDialogVisible}
+                        animationType="slide-up"
+                        onClose={this.onHthChecked}
+
+                    >
+                        <ScrollView style={styles.dialogHthCheck}>
+
+                            <List style={{ marginTop: 12 }}>
+                                <Text style={{ marginTop: 12 }}>请勾择不合格的合同号</Text>
+                                {
+                                    this.state.partHthList.map((l) => (
+                                        <CheckboxItem onChange={event => {
+                                            event.target.checked ? l.ischecked = true : l.ischecked = false;
+                                        }}>{l.hth}</CheckboxItem>
+                                    ))
+                                }
+                            </List>
+                        </ScrollView>
+                        <Button backgroundColor='#6495ed' activeOpacity={1}
+                            onPress={this.onHthChecked.bind(this)}
+                            ref="hthcheckbtn"
+                            title={'确认'} />
                     </Modal>
                 </ScrollView>
             </Provider>
@@ -379,6 +483,10 @@ const styles = StyleSheet.create({
         paddingTop: 0,
         height: 50,
 
+    },
+    dialogHthCheck: {
+        height: SCREEN_HEIGHT - 65,
+        padding: 5
     },
     partlistclass: {
         padding: 3,

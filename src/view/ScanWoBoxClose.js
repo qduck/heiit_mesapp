@@ -196,7 +196,11 @@ class ScanWoBoxClose extends React.Component {
             navigate('Login');
         }
     }
-
+    componentWillUnmount() {
+        this.setState = (state, callback) => {
+            return
+        }
+    }
     //在页面组件，控件渲染后触发
     componentDidMount() {
 
@@ -528,7 +532,7 @@ class ScanWoBoxClose extends React.Component {
                 this.setState({ submitLoading_BoxClose: false });
             }).catch((error) => {
                 LogException('装箱完工扫描异常！', '异常信息：' + error.message);
-                Alert.alert('装箱完工扫描异常！', JSON.stringify(error));
+                //Alert.alert('装箱完工扫描异常！', JSON.stringify(error));
                 this.setState({ submitLoading_BoxClose: false });
             });
     }

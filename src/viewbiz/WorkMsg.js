@@ -70,6 +70,7 @@ class WorkMsg extends React.Component {
 
         if (status != '1') {
             navigate('Login');
+            return;
         }
 
         if (token) {
@@ -182,6 +183,7 @@ class WorkMsg extends React.Component {
                     <WingBlank size="sm" >
                         <View style={styles.tabsContainView}>
                             <Tabs tabs={tabs}>
+                                {/* 
                                 <View style={tabstyle} >
                                     <List>
                                         <List.Item>
@@ -264,10 +266,11 @@ class WorkMsg extends React.Component {
                                     </List>
 
                                 </View>
+                               
+                                */}
                                 <View style={tabstyle}>
                                     <Text style={{ fontSize: 14 }}>异常列表【12】</Text>
                                 </View>
-
                             </Tabs>
                         </View>
                     </WingBlank>

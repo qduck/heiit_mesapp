@@ -42,7 +42,7 @@ var arScenes = {
     // 'BusinessCard': require('../../js/ARBusinessCard/BusinessCard.js'),
 }
 
-var showARScene = true;
+var showARScene = false;
 
 var ViroCodeSamplesSceneNavigator = createReactClass({
     render: function () {

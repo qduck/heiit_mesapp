@@ -9,8 +9,9 @@ import StringUtil from '../../api/StringUtil';
 import ImagePicker from 'react-native-image-picker';
 import { connect } from 'react-redux';
 import Toast, { DURATION } from 'react-native-easy-toast'
-import { LogInfo, LogError } from '../../api/Logger';
+import { LogInfo, LogError, LogException } from '../../api/Logger';
 import { ProcessingManager } from 'react-native-video-processing';
+import BackgroundJob from "react-native-background-job";
 // import ErrorUtils from "ErrorUtils";
 
 // ErrorUtils.setGlobalHandler((e) => {
@@ -21,7 +22,7 @@ import { ProcessingManager } from 'react-native-video-processing';
 const SCREEN_WIDTH = Dimensions.get('window').width;
 const SCREEN_HEIGHT = Dimensions.get('window').height;
 var RNFS = require('react-native-fs');
-
+var task_oqc_videouploading = false;
 
 const photoOptions = {
     title: '请选择',
@@ -49,9 +50,9 @@ const videoOptions = {
     allowsEditing: false,
     noData: true,
     mediaType: 'video',
-    width: 720,
-    height: 1280,
-    durationLimit: 60, //时间上限
+    width: 600,
+    height: 800,
+    durationLimit: 120, //时间上限
     storageOptions: {
         skipBackup: true,
         path: 'oqcvideo/' + StringUtil.getNowDate(),
@@ -61,14 +62,15 @@ const videoOptions = {
 };
 
 const compressOptions = {
-    width: 720,
-    height: 1280,
-    bitrateMultiplier: 3,
+    width: 600,
+    height: 800,
+    bitrateMultiplier: 10,
     // saveToCameraRoll: true, // default is false, iOS only
     // saveWithCurrentDate: true, // default is false, iOS only
     minimumBitrate: 300000,
     removeAudio: true, // default is false
 }
+
 
 class FQCLianDong extends React.Component {
     constructor(props) {
@@ -427,41 +429,100 @@ class FQCLianDong extends React.Component {
 
         formdata.append('HTH', orderno);
 
-        //console.log(videopath);
-
+        let date = new Date();
+        let currentTimestamp = date.getTime();
+        let JobKeyStr = "OQCTask_UploadVideo_" + currentTimestamp;
 
         RNFS.stat(videopath).then((retobj) => {
             // console.log('文件路径：' + retobj.originalFilepath);
+            LogInfo('上传成品检验（联动）视频开始压缩，', '开始压缩...' + retobj.originalFilepath);
             ProcessingManager.compress(retobj.originalFilepath, compressOptions)
                 .then((data) => {
-                    //console.log('压缩成功!' + data);
-                    let videofile = { uri: data.source, type: 'application/octet-stream', name: 'fqcvideo_' + orderno + '.3gp' };
-                    formdata.append('file', videofile);
-                    HTTPPOST_Multipart('/sm/uploadLDSMVideoParam', formdata, token, '1', 120 * 1000)
-                        .then((res) => {
-                            if (res.code > 0) {
-                                this.setState({ videouploaded: res.data });
-                                this.refs.toast.show('上传视频【' + videopath + '】成功！');
-                            } else {
-                                LogError('上传成品检验（联动）视频错误，', '错误：' + res.code + ':' + res.msg);
-                                Alert.alert('错误', '上传视频【' + videopath + '】失败！' + res.code + ':' + res.msg);
-                            }
-                            this.setState({ videoloading: false });
-                        }).catch((err) => {
 
-                            Alert.alert('上传联动视频异常', '上传视频【' + videopath + '】异常！' + err);
-                            this.setState({ videoloading: false });
-                        })
+                    LogInfo('上传成品检验（联动）视频压缩完成，', '压缩完成...');
+                    //console.log('压缩成功!' + data);
+                    BackgroundJob.register({
+                        jobKey: JobKeyStr,
+                        job: () => {
+                            this.uploadvideoBackTask(formdata, JobKeyStr, data.source);
+                        }
+                    });
+
+                    BackgroundJob.schedule({
+                        jobKey: JobKeyStr,
+                        notificationTitle: "Notification title",
+                        notificationText: "Notification text",
+                        allowWhileIdle: true,
+                        allowExecutionInForeground: true,
+                        period: 1000
+                    });
+
+                    let newvideouploaded = this.state.videouploaded + 1;
+                    this.setState({ videouploaded: newvideouploaded });
+                    this.setState({ videoloading: false });
+                    this.refs.toast.show('上传视频【' + videopath + '】成功！');
+
+
                 }).catch((err) => {
-                    Alert.alert('压缩视频文件异常！', '异常原因：' + err);
+                    //Alert.alert('压缩视频文件异常！', '异常原因：' + err);
+                    LogError('压缩视频文件异常！', '异常原因：' + err);
+                    //BackgroundJob.cancel({ jobKey: JobKey });
+                    //task_oqc_videouploading = false;
                     this.setState({ videoloading: false });
                 });
             // console.log('视频压缩完成！');
         }).catch((err2) => {
-            Alert.alert('获取视频文件信息异常！', '异常原因：' + err2);
+            //Alert.alert('获取视频文件信息异常！', '异常原因：' + err2);
+            LogException('获取视频文件信息异常！', '异常原因：' + err2);
+            //BackgroundJob.cancel({ jobKey: JobKey });
+            //task_oqc_videouploading = false;
             this.setState({ videoloading: false });
         });
+
+
+
+
+        //console.log(videopath);
+
+
         //开始上传
+    }
+
+    uploadvideoBackTask(formdata, JobKey, videopath) {
+        let { status, user, token } = this.props;
+        if (task_oqc_videouploading == false) {
+            LogInfo('上传成品检验（联动）视频开始上传，', '开始上传文件...');
+            task_oqc_videouploading = true;
+
+            let videofile = { uri: videopath, type: 'application/octet-stream', name: 'fqcvideo_' + '.3gp' };
+            formdata.append('file', videofile);
+
+
+            HTTPPOST_Multipart('/sm/uploadLDSMVideoParam', formdata, token, '1', 1200 * 1000)
+                .then((res) => {
+                    if (res.code > 0) {
+                        //this.setState({ videouploaded: res.data });
+                        //this.refs.toast.show('上传视频【' + videopath + '】成功！');
+                        LogInfo('上传成品检验（联动）视频成功，', '返回值：' + res.code);
+
+
+                    } else {
+                        LogError('上传成品检验（联动）视频错误，', '错误：' + res.code + ':' + res.msg);
+                        //Alert.alert('错误', '上传视频【' + videopath + '】失败！' + res.code + ':' + res.msg);
+
+                    }
+                    BackgroundJob.cancel({ jobKey: JobKey });
+                    task_oqc_videouploading = false;
+                    //this.setState({ videoloading: false });
+                }).catch((err) => {
+                    LogException('上传成品检验（联动）视频异常，', '上传视频【' + JSON.stringify(formdata) + '异常信息：' + err);
+                    //Alert.alert('上传联动视频异常', '上传视频【' + videopath + '】异常！' + err);
+                    //this.setState({ videoloading: false });
+                    BackgroundJob.cancel({ jobKey: JobKey });
+                    task_oqc_videouploading = false;
+                })
+        }
+
     }
 
     render() {

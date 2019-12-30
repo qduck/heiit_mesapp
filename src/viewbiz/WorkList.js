@@ -227,6 +227,14 @@ class WorkList extends React.Component {
                         pagepath: 'ARVR_TEST'
                     }
                 );
+
+                this.state.appBtnTest.push(
+                    {
+                        name: '后台作业 测试',
+                        iconname: 'md-code-working',
+                        pagepath: 'Back_TEST'
+                    }
+                );
             }
 
         }

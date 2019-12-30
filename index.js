@@ -3,6 +3,7 @@ import App from './App';
 
 import { LogInfo, LogException } from './src/api/Logger';
 import { setJSExceptionHandler } from 'react-native-exception-handler';
+import { GlobalTask } from './src/api/GlobalTask'
 
 const errorHandler = (e, isFatal) => {
     if (isFatal) {
