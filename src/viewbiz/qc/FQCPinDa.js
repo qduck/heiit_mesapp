@@ -1,7 +1,7 @@
 import React from 'react';
 import { Text, View, ScrollView, TouchableOpacity, Alert, StyleSheet, Dimensions, InteractionManager, TouchableHighlight, NativeModules } from 'react-native';
 import { Input, Button, Header, CheckBox } from 'react-native-elements';
-import { WhiteSpace, WingBlank, Flex, List, Switch } from '@ant-design/react-native';
+import { WhiteSpace, WingBlank, Flex, List, Switch, InputItem, Picker, Provider } from '@ant-design/react-native';
 import Icon from 'react-native-vector-icons/Ionicons';
 import { HTTPPOST, HTTPPOST_Multipart } from '../../api/HttpRequest';
 import ModalDropdown from 'react-native-modal-dropdown';
@@ -64,6 +64,16 @@ class FQCPinDa extends React.Component {
 
             checked: false,
             photouploaded: 0,
+            QCRemark: "",
+            qchandlemethodes: [
+                { value: '', label: '' },
+                { value: '退货', label: '退货' },
+                { value: '现场返工', label: '现场返工' },
+                { value: '让步接收', label: '让步接收' },
+                { value: '全检拣用', label: '全检拣用' },
+                { value: '其他处理', label: '其他处理' }
+            ],
+            QChandle: ""
         };
         //const navigate = this.props.navigation;
 
@@ -355,111 +365,138 @@ class FQCPinDa extends React.Component {
                 this.setState({ photoloading: false });
             })
     }
-
+    onChangeQChandle(value) {
+        this.setState({ QChandle: value });
+    }
     render() {
         return (
-            <ScrollView >
-                <Header
-                    placement="left"
-                    leftComponent={{ icon: 'home', color: '#fff', onPress: this.gohome.bind(this) }}
-                    centerComponent={{ text: '成品拼搭检验', style: { color: '#fff', fontWeight: 'bold' } }}
-                    containerStyle={styles.headercontainer}
-                />
-                <WingBlank>
-                    <WhiteSpace />
-                    <View style={styles.textIconInput}>
-                        <Input ref="textInput1"
-                            label="检验合同号："
-                            type="text" value={this.state.orderno}
-                            onChangeText={this.checkorderno}
-                            onSubmitEditing={this.getboxes.bind(this)}
-                            autoFocus={this.state.orderno_focused}
-                            style={styles.inputS}
-                            keyboardType="email-address"
-                            errorMessage={this.state.orderno_emessage}
-                            selectTextOnFocus={true}
-                        />
+            <Provider>
+                <ScrollView >
+                    <Header
+                        placement="left"
+                        leftComponent={{ icon: 'home', color: '#fff', onPress: this.gohome.bind(this) }}
+                        centerComponent={{ text: '成品拼搭检验', style: { color: '#fff', fontWeight: 'bold' } }}
+                        containerStyle={styles.headercontainer}
+                    />
+                    <WingBlank size="sm">
+                        <WhiteSpace size="sm" />
+                        <View style={styles.textIconInput}>
+                            <Input ref="textInput1"
+                                label="检验合同号(扫描唛头获得)："
+                                type="text" value={this.state.orderno}
+                                onChangeText={this.checkorderno}
+                                onSubmitEditing={this.getboxes.bind(this)}
+                                autoFocus={this.state.orderno_focused}
+                                style={styles.inputS}
+                                keyboardType="email-address"
+                                errorMessage={this.state.orderno_emessage}
+                                selectTextOnFocus={true}
+                            />
 
-                    </View>
-                    <WhiteSpace />
-                    <Flex style={{ padding: 10 }} justify="between">
-                        <Text style={{ fontWeight: 'bold' }}>待检验箱：</Text>
-                        <Text style={{ fontWeight: 'bold' }}>检验结果</Text>
-                    </Flex>
-                    <ScrollView style={styles.partlistclass} showsVerticalScrollIndicator={true}>
+                        </View>
+                        <WhiteSpace size="sm" />
+                        <Flex style={{ padding: 10 }} justify="between">
+                            <Text style={{ fontWeight: 'bold' }}>待检验箱：</Text>
+                            <Text style={{ fontWeight: 'bold' }}>检验结果</Text>
+                        </Flex>
+                        <ScrollView style={styles.partlistclass} showsVerticalScrollIndicator={true}>
+                            <List>
+                                {
+                                    this.state.fqcboxes.map((l, index) => (
+                                        <List.Item key={l.pkid}
+                                            extra={
+                                                <Text>
+                                                    {l.ispdhg == '不合格' || l.ispdhg == '待检验' ? ' [不合格]' : ' [合格]'}
+                                                    <Switch
+                                                        color="red"
+
+                                                        checked={l.ispdhg == '不合格' || l.ispdhg == '待检验' ? true : false}
+                                                        onChange={this.onSwitchChange.bind(this, index, l)}
+                                                    /></Text>
+                                            }
+                                        >
+                                            {l.boxName}
+                                            {<Text style={{ fontSize: 10 }}>
+                                                {l.mt + '  ' + l.pdremark}</Text>
+                                            }
+                                        </List.Item>
+                                    ))
+                                }
+                            </List>
+                        </ScrollView>
+
+                        <Flex style={{ padding: 10 }}>
+                            <Text style={{ fontWeight: 'bold' }}>新增检验箱：</Text>
+
+                        </Flex>
+                        <Flex style={{ paddingLeft: 10 }} justify="between">
+
+                            <ModalDropdown
+                                options={this.state.otherboxes.length >= 1 ? this.state.otherboxes : null}
+                                style={styles.Selecter}
+                                textStyle={styles.SelecterText}
+                                dropdownStyle={styles.SelecterDropDown}
+                                ref="selectaddbox"
+                                renderButtonText={(rowData) => this.selectaddbox_renderButtonText(rowData)}
+                                renderRow={this.selectaddbox_renderRow.bind(this)}
+                                onSelect={(idx, value) => this.selectaddbox_onSelect(idx, value)}
+                            />
+
+
+                            <Button buttonStyle={styles.addboxbtn}
+                                backgroundColor='#AAA' activeOpacity={1}
+                                onPress={this.addboxClick.bind(this)}
+                                title='添加'
+                                loading={this.state.addboxLoading}
+                            />
+
+                        </Flex>
                         <List>
-                            {
-                                this.state.fqcboxes.map((l, index) => (
-                                    <List.Item key={l.pkid}
-                                        extra={
-                                            <Text>
-                                                {l.ispdhg == '不合格' || l.ispdhg == '待检验' ? ' [不合格]' : ' [合格]'}
-                                                <Switch
-                                                    color="red"
-
-                                                    checked={l.ispdhg == '不合格' || l.ispdhg == '待检验' ? true : false}
-                                                    onChange={this.onSwitchChange.bind(this, index, l)}
-                                                /></Text>
-                                        }
-                                    >
-                                        {l.boxName}
-                                        {<Text style={{ fontSize: 10 }}>
-                                            {l.mt + '  ' + l.pdremark}</Text>
-                                        }
-                                    </List.Item>
-                                ))
-                            }
+                            <InputItem
+                                value={this.state.QCRemark}
+                                clear
+                                placeholder="请输入不合格描述"
+                                labelNumber={5}
+                                onChangeText={(text) => this.setState({ QCRemark: text })}
+                                style={{ padding: 0, margin: 0, backgroundColor: "#FFF" }}
+                            >
+                                <Text style={styles.dialogLabel}>问题描述:</Text>
+                            </InputItem>
                         </List>
-                    </ScrollView>
+                        <Picker
+                            data={this.state.qchandlemethodes}
+                            cols={1}
+                            value={this.state.QChandle}
+                            onChange={this.onChangeQChandle.bind(this)}
 
-                    <Flex style={{ padding: 10 }}>
-                        <Text style={{ fontWeight: 'bold' }}>新增检验箱：</Text>
+                        >
+                            <List.Item arrow="horizontal" style={{ padding: 0, margin: 0, textAlign: "left" }}>
+                                <Text style={styles.dialogLabel}>处置方式:</Text>
+                            </List.Item>
+                        </Picker>
+                        <WhiteSpace size="sm" />
 
-                    </Flex>
-                    <Flex style={{ paddingLeft: 10 }} justify="between">
+                        <Flex justify="between">
+                            <Button backgroundColor='#6495ed' activeOpacity={1}
+                                onPress={this.getboxes.bind(this)}
+                                loading={this.state.searchloading}
+                                title='查询项' />
 
-                        <ModalDropdown
-                            options={this.state.otherboxes.length >= 1 ? this.state.otherboxes : null}
-                            style={styles.Selecter}
-                            textStyle={styles.SelecterText}
-                            dropdownStyle={styles.SelecterDropDown}
-                            ref="selectaddbox"
-                            renderButtonText={(rowData) => this.selectaddbox_renderButtonText(rowData)}
-                            renderRow={this.selectaddbox_renderRow.bind(this)}
-                            onSelect={(idx, value) => this.selectaddbox_onSelect(idx, value)}
-                        />
+                            <Button backgroundColor='#6495ed' activeOpacity={1}
+                                onPress={() => this.getphoto(false)}
+                                loading={this.state.photoloading}
+                                title={'拍照(' + this.state.photouploaded + ')'} />
 
+                            <Button backgroundColor='#6495ed' activeOpacity={1}
+                                onPress={this.submitForm.bind(this)}
+                                loading={this.state.submitLoading}
+                                title='提交结果' />
+                        </Flex>
 
-                        <Button buttonStyle={styles.addboxbtn}
-                            backgroundColor='#AAA' activeOpacity={1}
-                            onPress={this.addboxClick.bind(this)}
-                            title='添加'
-                            loading={this.state.addboxLoading}
-                        />
-
-                    </Flex>
-                    <WhiteSpace />
-
-                    <Flex justify="between">
-                        <Button backgroundColor='#6495ed' activeOpacity={1}
-                            onPress={this.getboxes.bind(this)}
-                            loading={this.state.searchloading}
-                            title='查询检验项' />
-
-                        <Button backgroundColor='#6495ed' activeOpacity={1}
-                            onPress={() => this.getphoto(false)}
-                            loading={this.state.photoloading}
-                            title={'拍照(' + this.state.photouploaded + ')'} />
-
-                        <Button backgroundColor='#6495ed' activeOpacity={1}
-                            onPress={this.submitForm.bind(this)}
-                            loading={this.state.submitLoading}
-                            title='提交检验结果' />
-                    </Flex>
-
-                    <Toast ref="toast" position="top" positionValue={2} opacity={0.6} />
-                </WingBlank>
-            </ScrollView>
+                        <Toast ref="toast" position="top" positionValue={2} opacity={0.6} />
+                    </WingBlank>
+                </ScrollView>
+            </Provider>
         );
     }
 }
@@ -518,7 +555,7 @@ const styles = StyleSheet.create({
     },
     partlistclass: {
         padding: 5,
-        height: SCREEN_HEIGHT - 335,
+        height: SCREEN_HEIGHT - 415,
     },
     checkboxarea: {
         alignItems: 'flex-end',
@@ -533,5 +570,11 @@ const styles = StyleSheet.create({
         margin: 2,
         marginRight: 0,
         width: 80,
-    }
+    },
+    dialogLabel: {
+        fontWeight: 'bold',
+        textAlign: 'left',
+        fontSize: 15,
+        padding: 0, margin: 0
+    },
 });
